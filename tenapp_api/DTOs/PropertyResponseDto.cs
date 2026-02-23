@@ -9,4 +9,6 @@ public class PropertyResponseDto
     public decimal Price { get; set; }
     public int Level { get; set; }
     public DateTime CreatedAt { get; set; }
+    public Guid? TenantId { get; set; }
+    public string? TenantFullName { get; set; }
 }

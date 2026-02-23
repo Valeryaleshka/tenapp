@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<Property> Properties { get; set; }
+    public DbSet<Tenant> Tenants { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -93,6 +94,55 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+        });
+
+        modelBuilder.Entity<Tenant>(entity =>
+        {
+            entity.ToTable("tenant");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.FirstName)
+                .HasColumnName("first_name")
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.LastName)
+                .HasColumnName("last_name")
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.PhoneNumber)
+                .HasColumnName("phone_number")
+                .IsRequired()
+                .HasMaxLength(30);
+            entity.Property(e => e.Email)
+                .HasColumnName("email")
+                .IsRequired()
+                .HasMaxLength(255);
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("timezone('utc', now())");
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id")
+                .IsRequired();
+            entity.Property(e => e.PropertyId)
+                .HasColumnName("property_id");
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Tenants)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Property)
+                .WithMany(p => p.Tenants)
+                .HasForeignKey(e => e.PropertyId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+            entity.HasIndex(e => new { e.UserId, e.Email });
+            entity.HasIndex(e => e.PropertyId)
+                .IsUnique()
+                .HasFilter("\"property_id\" IS NOT NULL");
         });
     }
 }

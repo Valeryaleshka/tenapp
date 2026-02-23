@@ -12,5 +12,6 @@ public class User
     public string? PasswordResetTokenHash { get; set; }
     public DateTime? PasswordResetTokenExpiresAt { get; set; }
     public List<Property> Properties { get; set; } = [];
+    public List<Tenant> Tenants { get; set; } = [];
 }
 

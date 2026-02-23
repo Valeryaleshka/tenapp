@@ -8,6 +8,17 @@ export interface Property {
     price: number;
     level: number;
     createdAt: string;
+    tenantId?: string | null;
+    tenantFullName?: string | null;
+}
+
+export interface PropertyUpsertPayload {
+    name: string;
+    type: string;
+    address: string;
+    price: number;
+    level: number;
+    tenantId?: string | null;
 }
 
 export const propertyService = {
@@ -16,12 +27,12 @@ export const propertyService = {
         return response.data;
     },
 
-    add: async (property: Omit<Property, 'id' | 'createdAt'>): Promise<Property> => {
+    add: async (property: PropertyUpsertPayload): Promise<Property> => {
         const response = await apiClient.post('/properties', property);
         return response.data;
     },
 
-    update: async (id: string, property: Omit<Property, 'id' | 'createdAt'>): Promise<Property> => {
+    update: async (id: string, property: PropertyUpsertPayload): Promise<Property> => {
         const response = await apiClient.put(`/properties/${id}`, property);
         return response.data;
     },

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
 import {
     Form,
     Button,
     Modal,
 } from 'react-bootstrap';
-import { type Property, propertyService } from '../services/properties/property.service.ts';
+import { propertyService, type PropertyUpsertPayload } from '../services/properties/property.service.ts';
+import { tenantService, type Tenant } from '../services/tenants/tenant.service.ts';
 
 interface AddPropertyProps {
     show: boolean;
@@ -13,20 +14,37 @@ interface AddPropertyProps {
 }
 
 export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps) {
-    const [formData, setFormData] = useState<Omit<Property, 'id' | 'createdAt'>>({
+    const [formData, setFormData] = useState<PropertyUpsertPayload>({
         name: '',
         type: '',
         address: '',
         price: 0,
         level: 1,
+        tenantId: null,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [tenants, setTenants] = useState<Tenant[]>([]);
 
-    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    useEffect(() => {
+        if (!show) {
+            return;
+        }
+
+        void tenantService.getAll().then(setTenants).catch((error) => {
+            console.error('Failed to load tenants:', error);
+        });
+    }, [show]);
+
+    const handleTextChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: name === 'level' || name === 'price' ? Number(value) : value,
+            [name]:
+                name === 'level' || name === 'price'
+                    ? Number(value)
+                    : name === 'tenantId'
+                        ? (value || null)
+                        : value,
         }));
     };
 
@@ -34,7 +52,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         try {
             setIsSubmitting(true);
             await propertyService.add(formData);
-            setFormData({ name: '', type: '', address: '', price: 0, level: 1 });
+            setFormData({ name: '', type: '', address: '', price: 0, level: 1, tenantId: null });
             onPropertyAdded();
             onHide();
         } catch (error) {
@@ -44,7 +62,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         await submitAdd();
     };
@@ -107,6 +125,21 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                             min={1}
                             max={100}
                         />
+                    </Form.Group>
+                    <Form.Group className="mb-0 mt-3">
+                        <Form.Label>Assign Tenant (Optional)</Form.Label>
+                        <Form.Select
+                            name="tenantId"
+                            value={formData.tenantId ?? ''}
+                            onChange={handleTextChange}
+                        >
+                            <option value="">No tenant</option>
+                            {tenants.map((tenant) => (
+                                <option key={tenant.id} value={tenant.id}>
+                                    {tenant.firstName} {tenant.lastName}
+                                </option>
+                            ))}
+                        </Form.Select>
                     </Form.Group>
                 </Form>
             </Modal.Body>

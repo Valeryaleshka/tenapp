@@ -2,12 +2,14 @@
 import { Container, Spinner } from 'react-bootstrap';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './App.css';
+import { AppLayout } from './components/app-layout.tsx';
 import { useAuth } from './context/auth-context.tsx';
 import { ForgotPasswordPage } from './pages/forgot-password-page.tsx';
 import { LoginPage } from './pages/login-page.tsx';
 import { PropertiesPage } from './pages/properties-page.tsx';
 import { RegisterPage } from './pages/register-page.tsx';
 import { ResetPasswordPage } from './pages/reset-password-page.tsx';
+import { TenantsPage } from './pages/tenants-page.tsx';
 
 function AuthLayout() {
     return (
@@ -54,7 +56,10 @@ function App() {
             </Route>
 
             <Route element={<RequireAuth />}>
-                <Route path="/properties" element={<PropertiesPage />} />
+                <Route element={<AppLayout />}>
+                    <Route path="/properties" element={<PropertiesPage />} />
+                    <Route path="/tenants" element={<TenantsPage />} />
+                </Route>
             </Route>
 
             <Route path="*" element={<Navigate to={isAuthenticated ? '/properties' : '/login'} replace />} />
