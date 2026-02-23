@@ -63,7 +63,7 @@ export function AppLayout() {
                         </Button>
                         <div className="fw-semibold d-lg-none">Tenapp</div>
                     </div>
-                    <div className="fw-medium app-greeting">Hello, {displayName}!</div>
+                    <div className="fw-semibold fs-5 app-greeting">Hello, {displayName}!</div>
                 </header>
 
                 <main className="app-content flex-grow-1">

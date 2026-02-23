@@ -22,15 +22,24 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PropertyResponseDto>>> GetAll()
+    public async Task<ActionResult<PagedResponseDto<PropertyResponseDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
-        var properties = await _dbContext.Properties
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var baseQuery = _dbContext.Properties
             .AsNoTracking()
             .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await baseQuery.CountAsync();
+
+        var properties = await baseQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new PropertyResponseDto
             {
                 Id = p.Id,
@@ -45,7 +54,14 @@ public class PropertiesController : ControllerBase
             })
             .ToListAsync();
 
-        return Ok(properties);
+        return Ok(new PagedResponseDto<PropertyResponseDto>
+        {
+            Items = properties,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        });
     }
 
     [HttpGet("{id:guid}")]

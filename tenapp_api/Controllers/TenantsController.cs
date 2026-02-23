@@ -23,20 +23,42 @@ public class TenantsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TenantResponseDto>>> GetAll()
+    public async Task<ActionResult<PagedResponseDto<TenantResponseDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
-        var tenants = await _dbContext.Tenants
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var baseQuery = _dbContext.Tenants
             .AsNoTracking()
             .Include(t => t.Properties)
             .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => ToResponseDto(t))
+            .OrderByDescending(t => t.CreatedAt);
+
+        var totalCount = await _dbContext.Tenants
+            .AsNoTracking()
+            .Where(t => t.UserId == userId)
+            .CountAsync();
+
+        var tenantEntities = await baseQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return Ok(tenants);
+        var tenants = tenantEntities
+            .Select(ToResponseDto)
+            .ToList();
+
+        return Ok(new PagedResponseDto<TenantResponseDto>
+        {
+            Items = tenants,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+        });
     }
 
     [HttpGet("{id:guid}")]

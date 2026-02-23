@@ -28,9 +28,19 @@ export interface CreateTenantPayload {
     email: string;
 }
 
+export interface PagedResponse<T> {
+    items: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+}
+
 export const tenantService = {
-    getAll: async (): Promise<Tenant[]> => {
-        const response = await apiClient.get('/tenants');
+    getAll: async (page = 1, pageSize = 20): Promise<PagedResponse<Tenant>> => {
+        const response = await apiClient.get('/tenants', {
+            params: { page, pageSize },
+        });
         return response.data;
     },
 

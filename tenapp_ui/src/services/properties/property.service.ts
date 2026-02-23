@@ -21,9 +21,19 @@ export interface PropertyUpsertPayload {
     tenantId?: string | null;
 }
 
+export interface PagedResponse<T> {
+    items: T[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+}
+
 export const propertyService = {
-    getAll: async (): Promise<Property[]> => {
-        const response = await apiClient.get('/properties');
+    getAll: async (page = 1, pageSize = 20): Promise<PagedResponse<Property>> => {
+        const response = await apiClient.get('/properties', {
+            params: { page, pageSize },
+        });
         return response.data;
     },
 
