@@ -1,17 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { Alert, Button, Card, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/auth-context.tsx';
+import { useAuth } from '../../context/auth-context.tsx';
 
-export function RegisterPage() {
-    const { register } = useAuth();
+export function LoginPage() {
+    const { login } = useAuth();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         login: '',
         email: '',
         password: '',
-        firstName: '',
-        secondName: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -19,13 +17,23 @@ export function RegisterPage() {
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
+
+        if (!formData.login.trim() && !formData.email.trim()) {
+            setError('Enter login or email.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            await register(formData);
+            await login({
+                password: formData.password,
+                login: formData.login.trim() || undefined,
+                email: formData.email.trim() || undefined,
+            });
             navigate('/properties', { replace: true });
         } catch {
-            setError('Registration failed. Please try again.');
+            setError('Login failed. Please check your credentials.');
         } finally {
             setIsSubmitting(false);
         }
@@ -34,40 +42,16 @@ export function RegisterPage() {
     return (
         <Card className="shadow-sm">
             <Card.Body>
-                <Card.Title className="mb-3">Register</Card.Title>
+                <Card.Title className="mb-3">Login</Card.Title>
                 {error && <Alert variant="danger">{error}</Alert>}
-
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            required
-                            value={formData.firstName}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, firstName: event.target.value }))}
-                            placeholder="Enter first name"
-                        />
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                        <Form.Label>Second Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            required
-                            value={formData.secondName}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, secondName: event.target.value }))}
-                            placeholder="Enter second name"
-                        />
-                    </Form.Group>
-
                     <Form.Group className="mb-3">
                         <Form.Label>Login</Form.Label>
                         <Form.Control
                             type="text"
-                            required
                             value={formData.login}
                             onChange={(event) => setFormData((prev) => ({ ...prev, login: event.target.value }))}
-                            placeholder="Choose login"
+                            placeholder="Enter login"
                         />
                     </Form.Group>
 
@@ -75,7 +59,6 @@ export function RegisterPage() {
                         <Form.Label>Email</Form.Label>
                         <Form.Control
                             type="email"
-                            required
                             value={formData.email}
                             onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
                             placeholder="Enter email"
@@ -89,19 +72,24 @@ export function RegisterPage() {
                             required
                             value={formData.password}
                             onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
-                            placeholder="Choose password"
+                            placeholder="Enter password"
                         />
                     </Form.Group>
 
                     <Button type="submit" disabled={isSubmitting} className="w-100">
-                        {isSubmitting ? 'Creating account...' : 'Register'}
+                        {isSubmitting ? 'Signing in...' : 'Login'}
                     </Button>
                 </Form>
 
                 <div className="mt-3 text-center">
-                    Already have an account?{' '}
-                    <Link to="/login" className="btn btn-link p-0">
-                        Login
+                    No account?{' '}
+                    <Link to="/register" className="btn btn-link p-0">
+                        Register
+                    </Link>
+                </div>
+                <div className="mt-2 text-center">
+                    <Link to="/forgot-password" className="btn btn-link p-0">
+                        Forgot password?
                     </Link>
                 </div>
             </Card.Body>

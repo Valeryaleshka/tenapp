@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Button, Container } from 'react-bootstrap';
-import { AddProperty } from '../components/property-add.tsx';
-import { PropertyTable } from '../components/property-table.tsx';
+import { AddProperty } from './components/property-add.tsx';
+import { PropertyTable } from './components/property-table.tsx';
 
 export function PropertiesPage() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -13,8 +13,8 @@ export function PropertiesPage() {
 
     return (
         <Container className="py-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="h4 mb-0">Properties</h1>
+            <div className="page-toolbar d-flex justify-content-between align-items-center mb-4">
+                <h1 className="h4 mb-0 page-title">Properties</h1>
                 <Button variant="primary" onClick={() => setShowAddModal(true)}>
                     Add Property
                 </Button>

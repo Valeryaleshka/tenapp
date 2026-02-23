@@ -8,8 +8,7 @@ public class TenantResponseDto
     public string PhoneNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    public Guid? PropertyId { get; set; }
-    public string? PropertyName { get; set; }
-    public string? PropertyAddress { get; set; }
-    public string? AssignedProperty { get; set; }
+    public int PropertyCount { get; set; }
+    public List<string> AssignedProperties { get; set; } = [];
+    public List<TenantPropertyLinkDto> Properties { get; set; } = [];
 }

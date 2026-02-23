@@ -40,7 +40,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function AppLayout() {
+    const { user } = useAuth();
     const [showDrawer, setShowDrawer] = useState(false);
+    const displayName = `${user?.firstName ?? ''} ${user?.secondName ?? user?.lastName ?? ''}`.trim() || user?.login || 'User';
 
     return (
         <div className="app-shell d-flex">
@@ -49,11 +51,19 @@ export function AppLayout() {
             </aside>
 
             <div className="app-main flex-grow-1 d-flex flex-column">
-                <header className="app-mobile-header d-lg-none d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
-                    <div className="fw-semibold">Tenapp</div>
-                    <Button variant="outline-secondary" onClick={() => setShowDrawer(true)} aria-label="Open menu">
-                        &#9776;
-                    </Button>
+                <header className="app-top-header d-flex align-items-center justify-content-between px-3 px-lg-4 py-3 border-bottom">
+                    <div className="d-flex align-items-center gap-2">
+                        <Button
+                            variant="outline-secondary"
+                            onClick={() => setShowDrawer(true)}
+                            aria-label="Open menu"
+                            className="d-lg-none"
+                        >
+                            &#9776;
+                        </Button>
+                        <div className="fw-semibold d-lg-none">Tenapp</div>
+                    </div>
+                    <div className="fw-medium app-greeting">Hello, {displayName}!</div>
                 </header>
 
                 <main className="app-content flex-grow-1">

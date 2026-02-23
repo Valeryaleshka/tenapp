@@ -89,11 +89,18 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UserId)
                 .HasColumnName("user_id")
                 .IsRequired();
+            entity.Property(e => e.TenantId)
+                .HasColumnName("tenant_id");
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Properties)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Tenant)
+                .WithMany(t => t.Properties)
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.SetNull);
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+            entity.HasIndex(e => e.TenantId);
         });
 
         modelBuilder.Entity<Tenant>(entity =>
@@ -125,24 +132,14 @@ public class AppDbContext : DbContext
             entity.Property(e => e.UserId)
                 .HasColumnName("user_id")
                 .IsRequired();
-            entity.Property(e => e.PropertyId)
-                .HasColumnName("property_id");
 
             entity.HasOne(e => e.User)
                 .WithMany(u => u.Tenants)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.Property)
-                .WithMany(p => p.Tenants)
-                .HasForeignKey(e => e.PropertyId)
-                .OnDelete(DeleteBehavior.SetNull);
-
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Email });
-            entity.HasIndex(e => e.PropertyId)
-                .IsUnique()
-                .HasFilter("\"property_id\" IS NOT NULL");
         });
     }
 }

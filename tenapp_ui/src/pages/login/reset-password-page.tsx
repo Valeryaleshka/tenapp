@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Alert, Button, Card, Form } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { authService } from '../services/auth/auth.service.ts';
+import { Link, useSearchParams } from 'react-router-dom';
+import { authService } from '../../services/auth/auth.service.ts';
 
-export function ForgotPasswordPage() {
+export function ResetPasswordPage() {
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get('token') ?? '';
     const [email, setEmail] = useState('');
+    const [newPassword, setNewPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -13,13 +16,23 @@ export function ForgotPasswordPage() {
         event.preventDefault();
         setError(null);
         setSuccess(null);
+
+        if (!token) {
+            setError('Reset token is missing or invalid.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            await authService.forgotPassword(email.trim());
-            setSuccess('If the email exists, reset instructions were sent.');
+            await authService.resetPassword({
+                email: email.trim(),
+                token,
+                newPassword,
+            });
+            setSuccess('Password reset successful. You can now sign in.');
         } catch {
-            setError('Failed to request password reset.');
+            setError('Failed to reset password.');
         } finally {
             setIsSubmitting(false);
         }
@@ -28,7 +41,8 @@ export function ForgotPasswordPage() {
     return (
         <Card className="shadow-sm">
             <Card.Body>
-                <Card.Title className="mb-3">Reset Password</Card.Title>
+                <Card.Title className="mb-3">Set New Password</Card.Title>
+                {!token && <Alert variant="warning">Token was not found in the URL.</Alert>}
                 {error && <Alert variant="danger">{error}</Alert>}
                 {success && <Alert variant="success">{success}</Alert>}
 
@@ -44,8 +58,23 @@ export function ForgotPasswordPage() {
                         />
                     </Form.Group>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-100">
-                        {isSubmitting ? 'Sending...' : 'Send reset link'}
+                    <Form.Group className="mb-3">
+                        <Form.Label>New Password</Form.Label>
+                        <Form.Control
+                            type="password"
+                            required
+                            value={newPassword}
+                            onChange={(event) => setNewPassword(event.target.value)}
+                            placeholder="Enter new password"
+                        />
+                    </Form.Group>
+
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting || !token}
+                        className="w-100"
+                    >
+                        {isSubmitting ? 'Resetting...' : 'Reset password'}
                     </Button>
                 </Form>
 

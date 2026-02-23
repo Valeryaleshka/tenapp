@@ -27,6 +27,11 @@ export const propertyService = {
         return response.data;
     },
 
+    getById: async (id: string): Promise<Property> => {
+        const response = await apiClient.get(`/properties/${id}`);
+        return response.data;
+    },
+
     add: async (property: PropertyUpsertPayload): Promise<Property> => {
         const response = await apiClient.post('/properties', property);
         return response.data;

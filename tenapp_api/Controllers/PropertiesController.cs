@@ -40,12 +40,41 @@ public class PropertiesController : ControllerBase
                 Price = p.Price,
                 Level = p.Level,
                 CreatedAt = p.CreatedAt,
-                TenantId = p.Tenants.Select(t => (Guid?)t.Id).FirstOrDefault(),
-                TenantFullName = p.Tenants.Select(t => t.FirstName + " " + t.LastName).FirstOrDefault()
+                TenantId = p.TenantId,
+                TenantFullName = p.Tenant == null ? null : p.Tenant.FirstName + " " + p.Tenant.LastName
             })
             .ToListAsync();
 
         return Ok(properties);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<PropertyResponseDto>> GetById(Guid id)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized("Invalid access token");
+
+        var property = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.Id == id && p.UserId == userId)
+            .Select(p => new PropertyResponseDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Type = p.Type,
+                Address = p.Address,
+                Price = p.Price,
+                Level = p.Level,
+                CreatedAt = p.CreatedAt,
+                TenantId = p.TenantId,
+                TenantFullName = p.Tenant == null ? null : p.Tenant.FirstName + " " + p.Tenant.LastName
+            })
+            .FirstOrDefaultAsync();
+
+        if (property == null)
+            return NotFound();
+
+        return Ok(property);
     }
 
     [HttpPost]
@@ -78,17 +107,12 @@ public class PropertiesController : ControllerBase
             Price = dto.Price,
             Level = dto.Level,
             UserId = userId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            TenantId = selectedTenant?.Id
         };
 
         _dbContext.Properties.Add(property);
         await _dbContext.SaveChangesAsync();
-
-        if (selectedTenant != null)
-        {
-            selectedTenant.PropertyId = property.Id;
-            await _dbContext.SaveChangesAsync();
-        }
 
         var response = ToResponseDto(property, selectedTenant);
         return CreatedAtAction(nameof(GetAll), new { id = property.Id }, response);
@@ -119,10 +143,6 @@ public class PropertiesController : ControllerBase
         property.Price = dto.Price;
         property.Level = dto.Level;
 
-        var tenantsAssignedToProperty = await _dbContext.Tenants
-            .Where(t => t.PropertyId == property.Id && t.UserId == userId)
-            .ToListAsync();
-
         Tenant? selectedTenant = null;
         if (dto.TenantId.HasValue)
         {
@@ -131,16 +151,7 @@ public class PropertiesController : ControllerBase
             if (selectedTenant == null)
                 return BadRequest("Selected tenant does not exist");
         }
-
-        foreach (var tenant in tenantsAssignedToProperty.Where(t => selectedTenant == null || t.Id != selectedTenant.Id))
-        {
-            tenant.PropertyId = null;
-        }
-
-        if (selectedTenant != null)
-        {
-            selectedTenant.PropertyId = property.Id;
-        }
+        property.TenantId = selectedTenant?.Id;
 
         await _dbContext.SaveChangesAsync();
 

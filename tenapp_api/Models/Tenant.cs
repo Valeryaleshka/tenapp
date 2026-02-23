@@ -9,7 +9,6 @@ public class Tenant
     public string Email { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public Guid UserId { get; set; }
-    public Guid? PropertyId { get; set; }
     public User User { get; set; } = null!;
-    public Property? Property { get; set; }
+    public List<Property> Properties { get; set; } = [];
 }

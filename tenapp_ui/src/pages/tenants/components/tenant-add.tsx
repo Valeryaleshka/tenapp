@@ -1,7 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
-import { propertyService, type Property } from '../services/properties/property.service.ts';
-import { tenantService } from '../services/tenants/tenant.service.ts';
+import { tenantService } from '../../../services/tenants/tenant.service.ts';
 
 interface AddTenantProps {
     show: boolean;
@@ -14,7 +13,6 @@ interface TenantFormState {
     lastName: string;
     phoneNumber: string;
     email: string;
-    propertyId: string;
 }
 
 const initialFormState: TenantFormState = {
@@ -22,33 +20,16 @@ const initialFormState: TenantFormState = {
     lastName: '',
     phoneNumber: '',
     email: '',
-    propertyId: '',
 };
 
 export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [isLoadingProperties, setIsLoadingProperties] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState<TenantFormState>(initialFormState);
 
     useEffect(() => {
-        if (!show) {
-            return;
+        if (show) {
+            setFormData(initialFormState);
         }
-
-        const loadProperties = async () => {
-            try {
-                setIsLoadingProperties(true);
-                const propertyList = await propertyService.getAll();
-                setProperties(propertyList);
-            } catch (error) {
-                console.error('Failed to load properties for tenant assignment:', error);
-            } finally {
-                setIsLoadingProperties(false);
-            }
-        };
-
-        void loadProperties();
     }, [show]);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -64,7 +45,6 @@ export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
                 lastName: formData.lastName.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
                 email: formData.email.trim(),
-                propertyId: formData.propertyId || null,
             });
             setFormData(initialFormState);
             onTenantAdded();
@@ -127,22 +107,6 @@ export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
                             onChange={handleChange}
                             placeholder="Enter email"
                         />
-                    </Form.Group>
-                    <Form.Group className="mb-0">
-                        <Form.Label>Assign Property</Form.Label>
-                        <Form.Select
-                            name="propertyId"
-                            value={formData.propertyId}
-                            onChange={handleChange}
-                            disabled={isLoadingProperties}
-                        >
-                            <option value="">No property</option>
-                            {properties.map((property) => (
-                                <option key={property.id} value={property.id}>
-                                    {property.name} ({property.address})
-                                </option>
-                            ))}
-                        </Form.Select>
                     </Form.Group>
                 </Form>
             </Modal.Body>

@@ -4,8 +4,8 @@ import {
     Button,
     Modal,
 } from 'react-bootstrap';
-import { propertyService, type PropertyUpsertPayload } from '../services/properties/property.service.ts';
-import { tenantService, type Tenant } from '../services/tenants/tenant.service.ts';
+import { propertyService, type PropertyUpsertPayload } from '../../../services/properties/property.service.ts';
+import { tenantService, type TenantSelect } from '../../../services/tenants/tenant.service.ts';
 
 interface AddPropertyProps {
     show: boolean;
@@ -23,14 +23,14 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         tenantId: null,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [tenants, setTenants] = useState<TenantSelect[]>([]);
 
     useEffect(() => {
         if (!show) {
             return;
         }
 
-        void tenantService.getAll().then(setTenants).catch((error) => {
+        void tenantService.getForSelect().then(setTenants).catch((error) => {
             console.error('Failed to load tenants:', error);
         });
     }, [show]);
@@ -136,7 +136,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                             <option value="">No tenant</option>
                             {tenants.map((tenant) => (
                                 <option key={tenant.id} value={tenant.id}>
-                                    {tenant.firstName} {tenant.lastName}
+                                    {tenant.name}
                                 </option>
                             ))}
                         </Form.Select>

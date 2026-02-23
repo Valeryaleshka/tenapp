@@ -7,10 +7,18 @@ export interface Tenant {
     phoneNumber: string;
     email: string;
     createdAt: string;
-    propertyId?: string | null;
-    propertyName?: string | null;
-    propertyAddress?: string | null;
-    assignedProperty?: string | null;
+    propertyCount: number;
+    assignedProperties: string[];
+    properties: Array<{
+        id: string;
+        name: string;
+        address: string;
+    }>;
+}
+
+export interface TenantSelect {
+    id: string;
+    name: string;
 }
 
 export interface CreateTenantPayload {
@@ -18,7 +26,6 @@ export interface CreateTenantPayload {
     lastName: string;
     phoneNumber: string;
     email: string;
-    propertyId?: string | null;
 }
 
 export const tenantService = {
@@ -27,8 +34,18 @@ export const tenantService = {
         return response.data;
     },
 
+    getById: async (id: string): Promise<Tenant> => {
+        const response = await apiClient.get(`/tenants/${id}`);
+        return response.data;
+    },
+
     add: async (payload: CreateTenantPayload): Promise<Tenant> => {
         const response = await apiClient.post('/tenants', payload);
+        return response.data;
+    },
+
+    getForSelect: async (): Promise<TenantSelect[]> => {
+        const response = await apiClient.get('/tenants/select');
         return response.data;
     },
 

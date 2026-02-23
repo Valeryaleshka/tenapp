@@ -4,12 +4,14 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AppLayout } from './components/app-layout.tsx';
 import { useAuth } from './context/auth-context.tsx';
-import { ForgotPasswordPage } from './pages/forgot-password-page.tsx';
-import { LoginPage } from './pages/login-page.tsx';
-import { PropertiesPage } from './pages/properties-page.tsx';
-import { RegisterPage } from './pages/register-page.tsx';
-import { ResetPasswordPage } from './pages/reset-password-page.tsx';
-import { TenantsPage } from './pages/tenants-page.tsx';
+import { ForgotPasswordPage } from './pages/login/forgot-password-page.tsx';
+import { LoginPage } from './pages/login/login-page.tsx';
+import { PropertyDetailPage } from './pages/properties/property-detail-page.tsx';
+import { PropertiesPage } from './pages/properties/properties-page.tsx';
+import { RegisterPage } from './pages/login/register-page.tsx';
+import { ResetPasswordPage } from './pages/login/reset-password-page.tsx';
+import { TenantDetailPage } from './pages/tenants/tenant-detail-page.tsx';
+import { TenantsPage } from './pages/tenants/tenants-page.tsx';
 
 function AuthLayout() {
     return (
@@ -58,7 +60,9 @@ function App() {
             <Route element={<RequireAuth />}>
                 <Route element={<AppLayout />}>
                     <Route path="/properties" element={<PropertiesPage />} />
+                    <Route path="/properties/:id" element={<PropertyDetailPage />} />
                     <Route path="/tenants" element={<TenantsPage />} />
+                    <Route path="/tenants/:id" element={<TenantDetailPage />} />
                 </Route>
             </Route>
 

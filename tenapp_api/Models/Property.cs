@@ -10,6 +10,7 @@ public class Property
     public int Level { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid UserId { get; set; }
+    public Guid? TenantId { get; set; }
     public User User { get; set; } = null!;
-    public List<Tenant> Tenants { get; set; } = [];
+    public Tenant? Tenant { get; set; }
 }
