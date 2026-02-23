@@ -1,0 +1,26 @@
+# Monorepo workspace files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.*
+
+# Runtime logs
+*.log
+logs/
+
+# Build artifacts
+**/bin/
+**/obj/
+**/artifacts/
+**/dist/
+**/dist-ssr/
+**/node_modules/
+
+# Tool caches
+**/.cache/
+**/.eslintcache
+**/*.tsbuildinfo
