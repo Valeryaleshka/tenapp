@@ -1,6 +1,7 @@
-import { Form, Pagination, Table } from 'react-bootstrap';
+import { Form, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { AppPagination } from '../../../components/app-pagination.tsx';
 import {
     type Property,
     type PropertySortField,
@@ -97,11 +98,7 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
 
             <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">Total: {totalCount}</small>
-                <Pagination className="mb-0">
-                    <Pagination.Prev onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={page <= 1} />
-                    <Pagination.Item active>{page}</Pagination.Item>
-                    <Pagination.Next onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))} disabled={page >= totalPages} />
-                </Pagination>
+                <AppPagination page={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
         </>
     );
