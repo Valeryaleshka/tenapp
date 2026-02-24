@@ -29,10 +29,18 @@ export interface PagedResponse<T> {
     totalPages: number;
 }
 
+export type PropertySortField = 'name' | 'type' | 'level';
+export type SortDirection = 'asc' | 'desc';
+
 export const propertyService = {
-    getAll: async (page = 1, pageSize = 20): Promise<PagedResponse<Property>> => {
+    getAll: async (
+        page = 1,
+        pageSize = 20,
+        sortBy: PropertySortField = 'name',
+        sortDir: SortDirection = 'asc',
+    ): Promise<PagedResponse<Property>> => {
         const response = await apiClient.get('/properties', {
-            params: { page, pageSize },
+            params: { page, pageSize, sortBy, sortDir },
         });
         return response.data;
     },

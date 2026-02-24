@@ -1,7 +1,12 @@
-import { Pagination, Table } from 'react-bootstrap';
+import { Form, Pagination, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { type Property, propertyService } from '../../../services/properties/property.service.ts';
+import {
+    type Property,
+    type PropertySortField,
+    propertyService,
+    type SortDirection,
+} from '../../../services/properties/property.service.ts';
 
 interface PropertyTableProps {
     refreshTrigger: number;
@@ -12,23 +17,53 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [sortBy, setSortBy] = useState<PropertySortField>('name');
+    const [sortDir, setSortDir] = useState<SortDirection>('asc');
 
     useEffect(() => {
         setPage(1);
     }, [refreshTrigger]);
 
     useEffect(() => {
-        void propertyService.getAll(page, 15).then((response) => {
+        void propertyService.getAll(page, 20, sortBy, sortDir).then((response) => {
             setProperties(response.items);
             setTotalPages(Math.max(1, response.totalPages));
             setTotalCount(response.totalCount);
         }).catch((error) => {
             console.error('Failed to load properties:', error);
         });
-    }, [page, refreshTrigger]);
+    }, [page, refreshTrigger, sortBy, sortDir]);
 
     return (
         <>
+            <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
+                <Form.Select
+                    aria-label="Sort properties by field"
+                    value={sortBy}
+                    onChange={(event) => {
+                        setSortBy(event.target.value as PropertySortField);
+                        setPage(1);
+                    }}
+                    style={{ width: '170px' }}
+                >
+                    <option value="name">Sort: Name</option>
+                    <option value="type">Sort: Type</option>
+                    <option value="level">Sort: Level</option>
+                </Form.Select>
+                <Form.Select
+                    aria-label="Sort properties direction"
+                    value={sortDir}
+                    onChange={(event) => {
+                        setSortDir(event.target.value as SortDirection);
+                        setPage(1);
+                    }}
+                    style={{ width: '130px' }}
+                >
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </Form.Select>
+            </div>
+
             <Table striped bordered hover className="align-middle">
                 <thead>
                     <tr>

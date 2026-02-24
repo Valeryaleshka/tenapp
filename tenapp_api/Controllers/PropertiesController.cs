@@ -22,7 +22,11 @@ public class PropertiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponseDto<PropertyResponseDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<PagedResponseDto<PropertyResponseDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string sortBy = "name",
+        [FromQuery] string sortDir = "asc")
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
@@ -30,14 +34,30 @@ public class PropertiesController : ControllerBase
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var baseQuery = _dbContext.Properties
+        var filteredQuery = _dbContext.Properties
             .AsNoTracking()
-            .Where(p => p.UserId == userId)
-            .OrderByDescending(p => p.CreatedAt);
+            .Where(p => p.UserId == userId);
 
-        var totalCount = await baseQuery.CountAsync();
+        var descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+        var sortedQuery = sortBy.ToLowerInvariant() switch
+        {
+            "type" => descending
+                ? filteredQuery.OrderByDescending(p => p.Type).ThenBy(p => p.Id)
+                : filteredQuery.OrderBy(p => p.Type).ThenBy(p => p.Id),
+            "level" => descending
+                ? filteredQuery.OrderByDescending(p => p.Level).ThenBy(p => p.Id)
+                : filteredQuery.OrderBy(p => p.Level).ThenBy(p => p.Id),
+            "name" => descending
+                ? filteredQuery.OrderByDescending(p => p.Name).ThenBy(p => p.Id)
+                : filteredQuery.OrderBy(p => p.Name).ThenBy(p => p.Id),
+            _ => descending
+                ? filteredQuery.OrderByDescending(p => p.Name).ThenBy(p => p.Id)
+                : filteredQuery.OrderBy(p => p.Name).ThenBy(p => p.Id)
+        };
 
-        var properties = await baseQuery
+        var totalCount = await filteredQuery.CountAsync();
+
+        var properties = await sortedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(p => new PropertyResponseDto

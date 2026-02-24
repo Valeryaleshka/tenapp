@@ -36,10 +36,18 @@ export interface PagedResponse<T> {
     totalPages: number;
 }
 
+export type TenantSortField = 'firstName' | 'lastName';
+export type SortDirection = 'asc' | 'desc';
+
 export const tenantService = {
-    getAll: async (page = 1, pageSize = 20): Promise<PagedResponse<Tenant>> => {
+    getAll: async (
+        page = 1,
+        pageSize = 20,
+        sortBy: TenantSortField = 'firstName',
+        sortDir: SortDirection = 'asc',
+    ): Promise<PagedResponse<Tenant>> => {
         const response = await apiClient.get('/tenants', {
-            params: { page, pageSize },
+            params: { page, pageSize, sortBy, sortDir },
         });
         return response.data;
     },

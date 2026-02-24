@@ -84,6 +84,20 @@ export function PropertyDetailPage() {
         }
     };
 
+    const handleCloseEditModal = () => {
+        if (property) {
+            setEditForm({
+                name: property.name,
+                type: property.type,
+                address: property.address,
+                price: property.price,
+                level: property.level,
+                tenantId: property.tenantId ?? null,
+            });
+        }
+        setShowEditModal(false);
+    };
+
     const handleDelete = async () => {
         if (!id) {
             return;
@@ -143,7 +157,7 @@ export function PropertyDetailPage() {
                 </Card.Body>
             </Card>
 
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
+            <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Property</Modal.Title>
                 </Modal.Header>
@@ -171,12 +185,22 @@ export function PropertyDetailPage() {
                         </Form.Group>
                         <Form.Group>
                             <Form.Label>Assign Tenant (Optional)</Form.Label>
-                            <Form.Select name="tenantId" value={editForm.tenantId ?? ''} onChange={handleEditChange}>
-                                <option value="">No tenant</option>
-                                {tenants.map((tenant) => (
-                                    <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
-                                ))}
-                            </Form.Select>
+                            <div className="d-flex gap-2">
+                                <Form.Select name="tenantId" value={editForm.tenantId ?? ''} onChange={handleEditChange}>
+                                    <option value="">No tenant</option>
+                                    {tenants.map((tenant) => (
+                                        <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
+                                    ))}
+                                </Form.Select>
+                                <Button
+                                    variant="outline-secondary"
+                                    type="button"
+                                    onClick={() => setEditForm((prev) => ({ ...prev, tenantId: null }))}
+                                    disabled={!editForm.tenantId}
+                                >
+                                    Clear
+                                </Button>
+                            </div>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
@@ -185,7 +209,7 @@ export function PropertyDetailPage() {
                         {isDeleting ? 'Deleting...' : 'Delete'}
                     </Button>
                     <div className="d-flex gap-2">
-                        <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={isSaving || isDeleting}>
+                        <Button variant="secondary" onClick={handleCloseEditModal} disabled={isSaving || isDeleting}>
                             Cancel
                         </Button>
                         <Button variant="primary" onClick={() => void handleSave()} disabled={isSaving || isDeleting}>

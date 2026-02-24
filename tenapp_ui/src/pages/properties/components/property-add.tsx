@@ -14,13 +14,17 @@ interface AddPropertyProps {
 }
 
 export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps) {
-    const [formData, setFormData] = useState<PropertyUpsertPayload>({
+    const initialFormData: PropertyUpsertPayload = {
         name: '',
         type: '',
         address: '',
         price: 0,
         level: 1,
         tenantId: null,
+    };
+
+    const [formData, setFormData] = useState<PropertyUpsertPayload>({
+        ...initialFormData,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [tenants, setTenants] = useState<TenantSelect[]>([]);
@@ -52,7 +56,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         try {
             setIsSubmitting(true);
             await propertyService.add(formData);
-            setFormData({ name: '', type: '', address: '', price: 0, level: 1, tenantId: null });
+            setFormData(initialFormData);
             onPropertyAdded();
             onHide();
         } catch (error) {
@@ -62,13 +66,18 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         }
     };
 
+    const handleCloseModal = () => {
+        setFormData(initialFormData);
+        onHide();
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         await submitAdd();
     };
 
     return (
-        <Modal show={show} onHide={onHide} centered>
+        <Modal show={show} onHide={handleCloseModal} centered>
             <Modal.Header closeButton>
                 <Modal.Title>Add Property</Modal.Title>
             </Modal.Header>
@@ -128,23 +137,33 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                     </Form.Group>
                     <Form.Group className="mb-0 mt-3">
                         <Form.Label>Assign Tenant (Optional)</Form.Label>
-                        <Form.Select
-                            name="tenantId"
-                            value={formData.tenantId ?? ''}
-                            onChange={handleTextChange}
-                        >
-                            <option value="">No tenant</option>
-                            {tenants.map((tenant) => (
-                                <option key={tenant.id} value={tenant.id}>
-                                    {tenant.name}
-                                </option>
-                            ))}
-                        </Form.Select>
+                        <div className="d-flex gap-2">
+                            <Form.Select
+                                name="tenantId"
+                                value={formData.tenantId ?? ''}
+                                onChange={handleTextChange}
+                            >
+                                <option value="">No tenant</option>
+                                {tenants.map((tenant) => (
+                                    <option key={tenant.id} value={tenant.id}>
+                                        {tenant.name}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                            <Button
+                                variant="outline-secondary"
+                                type="button"
+                                onClick={() => setFormData((prev) => ({ ...prev, tenantId: null }))}
+                                disabled={!formData.tenantId}
+                            >
+                                Clear
+                            </Button>
+                        </div>
                     </Form.Group>
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>
+                <Button variant="secondary" onClick={handleCloseModal} disabled={isSubmitting}>
                     Cancel
                 </Button>
                 <Button variant="primary" onClick={() => void submitAdd()} disabled={isSubmitting}>

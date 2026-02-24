@@ -23,7 +23,11 @@ public class TenantsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponseDto<TenantResponseDto>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<PagedResponseDto<TenantResponseDto>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string sortBy = "firstName",
+        [FromQuery] string sortDir = "asc")
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
@@ -31,18 +35,28 @@ public class TenantsController : ControllerBase
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var baseQuery = _dbContext.Tenants
+        var filteredQuery = _dbContext.Tenants
             .AsNoTracking()
             .Include(t => t.Properties)
-            .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt);
+            .Where(t => t.UserId == userId);
 
-        var totalCount = await _dbContext.Tenants
-            .AsNoTracking()
-            .Where(t => t.UserId == userId)
-            .CountAsync();
+        var descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
+        var sortedQuery = sortBy.ToLowerInvariant() switch
+        {
+            "lastname" => descending
+                ? filteredQuery.OrderByDescending(t => t.LastName).ThenBy(t => t.Id)
+                : filteredQuery.OrderBy(t => t.LastName).ThenBy(t => t.Id),
+            "firstname" => descending
+                ? filteredQuery.OrderByDescending(t => t.FirstName).ThenBy(t => t.Id)
+                : filteredQuery.OrderBy(t => t.FirstName).ThenBy(t => t.Id),
+            _ => descending
+                ? filteredQuery.OrderByDescending(t => t.FirstName).ThenBy(t => t.Id)
+                : filteredQuery.OrderBy(t => t.FirstName).ThenBy(t => t.Id)
+        };
 
-        var tenantEntities = await baseQuery
+        var totalCount = await filteredQuery.CountAsync();
+
+        var tenantEntities = await sortedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
