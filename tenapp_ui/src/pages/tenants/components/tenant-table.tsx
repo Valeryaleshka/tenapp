@@ -1,4 +1,4 @@
-import { Form, Table } from 'react-bootstrap';
+import { Form, Placeholder, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AppPagination } from '../../../components/app-pagination.tsx';
@@ -24,19 +24,37 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
     const [totalCount, setTotalCount] = useState(0);
     const [sortBy, setSortBy] = useState<TenantSortField>('firstName');
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setPage(1);
     }, [refreshTrigger]);
 
     useEffect(() => {
+        let isCancelled = false;
+        setIsLoading(true);
+
         void tenantService.getAll(page, 20, sortBy, sortDir).then((response) => {
+            if (isCancelled) {
+                return;
+            }
+
             setTenants(response.items);
             setTotalPages(Math.max(1, response.totalPages));
             setTotalCount(response.totalCount);
         }).catch((error) => {
-            console.error('Failed to load tenants:', error);
+            if (!isCancelled) {
+                console.error('Failed to load tenants:', error);
+            }
+        }).finally(() => {
+            if (!isCancelled) {
+                setIsLoading(false);
+            }
         });
+
+        return () => {
+            isCancelled = true;
+        };
     }, [page, refreshTrigger, sortBy, sortDir]);
 
     const applySort = (field: TenantSortField) => {
@@ -86,8 +104,8 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                             >
                                 <span>First Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>▲</span>
-                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')}>▼</span>
+                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>^</span>
+                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')}>v</span>
                                 </span>
                             </button>
                         </th>
@@ -99,8 +117,8 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                             >
                                 <span>Last Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>▲</span>
-                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')}>▼</span>
+                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>^</span>
+                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')}>v</span>
                                 </span>
                             </button>
                         </th>
@@ -112,21 +130,35 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {tenants.map((tenant) => (
-                        <tr key={tenant.id} className={tenant.assignedProperties.length > 0 ? 'table-info' : ''}>
-                            <td>{tenant.firstName}</td>
-                            <td>{tenant.lastName}</td>
-                            <td>{tenant.phoneNumber}</td>
-                            <td className="d-none d-md-table-cell">{tenant.email}</td>
-                            <td className="d-none d-md-table-cell">{tenant.assignedProperties.join(', ') || 'Unassigned'}</td>
-                            <td className="d-none d-md-table-cell">{new Date(tenant.createdAt).toLocaleDateString()}</td>
-                            <td className="table-action-col">
-                                <Link to={`/tenants/${tenant.id}`} className="btn btn-primary">
-                                    Details
-                                </Link>
-                            </td>
-                        </tr>
-                    ))}
+                    {isLoading ? (
+                        Array.from({ length: 6 }).map((_, index) => (
+                            <tr key={`tenant-skeleton-${index}`}>
+                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={7} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={9} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={11} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="table-action-col"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                            </tr>
+                        ))
+                    ) : (
+                        tenants.map((tenant) => (
+                            <tr key={tenant.id} className={tenant.assignedProperties.length > 0 ? 'table-info' : ''}>
+                                <td>{tenant.firstName}</td>
+                                <td>{tenant.lastName}</td>
+                                <td>{tenant.phoneNumber}</td>
+                                <td className="d-none d-md-table-cell">{tenant.email}</td>
+                                <td className="d-none d-md-table-cell">{tenant.assignedProperties.join(', ') || 'Unassigned'}</td>
+                                <td className="d-none d-md-table-cell">{new Date(tenant.createdAt).toLocaleDateString()}</td>
+                                <td className="table-action-col">
+                                    <Link to={`/tenants/${tenant.id}`} className="btn btn-primary">
+                                        Details
+                                    </Link>
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </Table>
 

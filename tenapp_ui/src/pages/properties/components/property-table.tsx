@@ -1,4 +1,4 @@
-import { Form, Table } from 'react-bootstrap';
+import { Form, Placeholder, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AppPagination } from '../../../components/app-pagination.tsx';
@@ -24,19 +24,37 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
     const [totalCount, setTotalCount] = useState(0);
     const [sortBy, setSortBy] = useState<PropertySortField>('name');
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         setPage(1);
     }, [refreshTrigger]);
 
     useEffect(() => {
+        let isCancelled = false;
+        setIsLoading(true);
+
         void propertyService.getAll(page, 20, sortBy, sortDir).then((response) => {
+            if (isCancelled) {
+                return;
+            }
+
             setProperties(response.items);
             setTotalPages(Math.max(1, response.totalPages));
             setTotalCount(response.totalCount);
         }).catch((error) => {
-            console.error('Failed to load properties:', error);
+            if (!isCancelled) {
+                console.error('Failed to load properties:', error);
+            }
+        }).finally(() => {
+            if (!isCancelled) {
+                setIsLoading(false);
+            }
         });
+
+        return () => {
+            isCancelled = true;
+        };
     }, [page, refreshTrigger, sortBy, sortDir]);
 
     const applySort = (field: PropertySortField) => {
@@ -87,8 +105,8 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                             >
                                 <span>Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'asc')}>▲</span>
-                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'desc')}>▼</span>
+                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'asc')}>^</span>
+                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'desc')}>v</span>
                                 </span>
                             </button>
                         </th>
@@ -101,8 +119,8 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                             >
                                 <span>Type</span>
                                 <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'asc')}>▲</span>
-                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'desc')}>▼</span>
+                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'asc')}>^</span>
+                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'desc')}>v</span>
                                 </span>
                             </button>
                         </th>
@@ -114,8 +132,8 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                             >
                                 <span>Level</span>
                                 <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'asc')}>▲</span>
-                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'desc')}>▼</span>
+                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'asc')}>^</span>
+                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'desc')}>v</span>
                                 </span>
                             </button>
                         </th>
@@ -125,21 +143,35 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                     </tr>
                 </thead>
                 <tbody>
-                    {properties.map((property) => (
-                        <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
-                            <td>{property.name}</td>
-                            <td>{property.address}</td>
-                            <td className="d-none d-md-table-cell">{property.type}</td>
-                            <td className="d-none d-md-table-cell">{property.level}</td>
-                            <td className="d-none d-md-table-cell">{property.price.toLocaleString()}</td>
-                            <td className="d-none d-md-table-cell">{new Date(property.createdAt).toLocaleDateString()}</td>
-                            <td className="table-action-col">
-                                <Link to={`/properties/${property.id}`} className="btn btn-primary">
-                                    Details
-                                </Link>
-                            </td>
-                        </tr>
-                    ))}
+                    {isLoading ? (
+                        Array.from({ length: 6 }).map((_, index) => (
+                            <tr key={`property-skeleton-${index}`}>
+                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={10} className="app-skeleton-line" /></Placeholder></td>
+                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={12} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={7} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={4} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={6} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                                <td className="table-action-col"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
+                            </tr>
+                        ))
+                    ) : (
+                        properties.map((property) => (
+                            <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
+                                <td>{property.name}</td>
+                                <td>{property.address}</td>
+                                <td className="d-none d-md-table-cell">{property.type}</td>
+                                <td className="d-none d-md-table-cell">{property.level}</td>
+                                <td className="d-none d-md-table-cell">{property.price.toLocaleString()}</td>
+                                <td className="d-none d-md-table-cell">{new Date(property.createdAt).toLocaleDateString()}</td>
+                                <td className="table-action-col">
+                                    <Link to={`/properties/${property.id}`} className="btn btn-primary">
+                                        Details
+                                    </Link>
+                                </td>
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </Table>
 
