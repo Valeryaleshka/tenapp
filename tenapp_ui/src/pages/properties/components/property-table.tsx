@@ -6,8 +6,12 @@ import {
     type Property,
     type PropertySortField,
     propertyService,
-    type SortDirection,
 } from '../../../services/properties/property.service.ts';
+import {
+    getNextSortDirection,
+    getSortArrowClasses,
+    type SortDirection,
+} from '../../../services/sort/sort.service.ts';
 
 interface PropertyTableProps {
     refreshTrigger: number;
@@ -34,6 +38,13 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
             console.error('Failed to load properties:', error);
         });
     }, [page, refreshTrigger, sortBy, sortDir]);
+
+    const applySort = (field: PropertySortField) => {
+        const nextDirection = getNextSortDirection(sortBy, field, sortDir);
+        setSortBy(field);
+        setSortDir(nextDirection);
+        setPage(1);
+    };
 
     return (
         <>
@@ -68,10 +79,46 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
             <Table striped bordered hover className="align-middle">
                 <thead>
                     <tr>
-                        <th>Name</th>
+                        <th>
+                            <button
+                                type="button"
+                                className={`app-sort-header ${sortBy === 'name' ? 'active' : ''}`}
+                                onClick={() => applySort('name')}
+                            >
+                                <span>Name</span>
+                                <span className="app-sort-arrows" aria-hidden>
+                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'asc')}>▲</span>
+                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'desc')}>▼</span>
+                                </span>
+                            </button>
+                        </th>
                         <th>Address</th>
-                        <th className="d-none d-md-table-cell">Type</th>
-                        <th className="d-none d-md-table-cell">Level</th>
+                        <th className="d-none d-md-table-cell">
+                            <button
+                                type="button"
+                                className={`app-sort-header ${sortBy === 'type' ? 'active' : ''}`}
+                                onClick={() => applySort('type')}
+                            >
+                                <span>Type</span>
+                                <span className="app-sort-arrows" aria-hidden>
+                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'asc')}>▲</span>
+                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'desc')}>▼</span>
+                                </span>
+                            </button>
+                        </th>
+                        <th className="d-none d-md-table-cell">
+                            <button
+                                type="button"
+                                className={`app-sort-header ${sortBy === 'level' ? 'active' : ''}`}
+                                onClick={() => applySort('level')}
+                            >
+                                <span>Level</span>
+                                <span className="app-sort-arrows" aria-hidden>
+                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'asc')}>▲</span>
+                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'desc')}>▼</span>
+                                </span>
+                            </button>
+                        </th>
                         <th className="d-none d-md-table-cell">Price</th>
                         <th className="d-none d-md-table-cell">Created At</th>
                         <th className="table-action-col"></th>

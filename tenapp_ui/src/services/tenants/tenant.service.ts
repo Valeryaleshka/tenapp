@@ -1,4 +1,5 @@
 import { apiClient } from '../api/api-client.ts';
+import { type SortDirection } from '../sort/sort.service.ts';
 
 export interface Tenant {
     id: string;
@@ -37,7 +38,6 @@ export interface PagedResponse<T> {
 }
 
 export type TenantSortField = 'firstName' | 'lastName';
-export type SortDirection = 'asc' | 'desc';
 
 export const tenantService = {
     getAll: async (

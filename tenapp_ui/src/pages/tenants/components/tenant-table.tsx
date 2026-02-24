@@ -6,8 +6,12 @@ import {
     tenantService,
     type Tenant,
     type TenantSortField,
-    type SortDirection,
 } from '../../../services/tenants/tenant.service.ts';
+import {
+    getNextSortDirection,
+    getSortArrowClasses,
+    type SortDirection,
+} from '../../../services/sort/sort.service.ts';
 
 interface TenantTableProps {
     refreshTrigger: number;
@@ -34,6 +38,13 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
             console.error('Failed to load tenants:', error);
         });
     }, [page, refreshTrigger, sortBy, sortDir]);
+
+    const applySort = (field: TenantSortField) => {
+        const nextDirection = getNextSortDirection(sortBy, field, sortDir);
+        setSortBy(field);
+        setSortDir(nextDirection);
+        setPage(1);
+    };
 
     return (
         <>
@@ -67,8 +78,32 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
             <Table striped bordered hover className="mt-4 align-middle">
                 <thead>
                     <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
+                        <th>
+                            <button
+                                type="button"
+                                className={`app-sort-header ${sortBy === 'firstName' ? 'active' : ''}`}
+                                onClick={() => applySort('firstName')}
+                            >
+                                <span>First Name</span>
+                                <span className="app-sort-arrows" aria-hidden>
+                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>▲</span>
+                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')}>▼</span>
+                                </span>
+                            </button>
+                        </th>
+                        <th>
+                            <button
+                                type="button"
+                                className={`app-sort-header ${sortBy === 'lastName' ? 'active' : ''}`}
+                                onClick={() => applySort('lastName')}
+                            >
+                                <span>Last Name</span>
+                                <span className="app-sort-arrows" aria-hidden>
+                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>▲</span>
+                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')}>▼</span>
+                                </span>
+                            </button>
+                        </th>
                         <th>Phone</th>
                         <th className="d-none d-md-table-cell">Email</th>
                         <th className="d-none d-md-table-cell">Assigned Property</th>
