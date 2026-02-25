@@ -105,7 +105,7 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                                 <span>First Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
                                     <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>^</span>
-                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')}>v</span>
+                                    <span className={`${getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
                                 </span>
                             </button>
                         </th>
@@ -118,7 +118,7 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                                 <span>Last Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
                                     <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>^</span>
-                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')}>v</span>
+                                    <span className={`${getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
                                 </span>
                             </button>
                         </th>

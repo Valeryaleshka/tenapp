@@ -160,6 +160,11 @@
     font-size: 0.58rem;
 }
 
+.app-sort-arrow-down {
+    transform: rotate(180deg);
+    display: inline-block;
+}
+
 .app-sort-arrow.active {
     opacity: 1;
     color: var(--app-accent);

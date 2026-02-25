@@ -106,7 +106,7 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                                 <span>Name</span>
                                 <span className="app-sort-arrows" aria-hidden>
                                     <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'asc')}>^</span>
-                                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'desc')}>v</span>
+                                    <span className={`${getSortArrowClasses(sortBy === 'name', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
                                 </span>
                             </button>
                         </th>
@@ -120,7 +120,7 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                                 <span>Type</span>
                                 <span className="app-sort-arrows" aria-hidden>
                                     <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'asc')}>^</span>
-                                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'desc')}>v</span>
+                                    <span className={`${getSortArrowClasses(sortBy === 'type', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
                                 </span>
                             </button>
                         </th>
@@ -133,7 +133,7 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                                 <span>Level</span>
                                 <span className="app-sort-arrows" aria-hidden>
                                     <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'asc')}>^</span>
-                                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'desc')}>v</span>
+                                    <span className={`${getSortArrowClasses(sortBy === 'level', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
                                 </span>
                             </button>
                         </th>
