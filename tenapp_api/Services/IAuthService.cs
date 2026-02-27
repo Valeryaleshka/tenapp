@@ -6,8 +6,8 @@ namespace TenappCore.Services;
 
 public interface IAuthService
 {
-    Task<AuthResult<UserResponseDto>> RegisterAsync(RegisterUserDto dto, HttpResponse response);
-    Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpResponse response);
+    Task<AuthResult<UserResponseDto>> RegisterAsync(RegisterUserDto dto, HttpRequest request, HttpResponse response);
+    Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpRequest request, HttpResponse response);
     Task<AuthResult<UserResponseDto>> RefreshAsync(HttpRequest request, HttpResponse response);
     Task ForgotPasswordAsync(ForgotPasswordDto dto);
     Task<AuthResult<string>> ResetPasswordAsync(ResetPasswordDto dto);

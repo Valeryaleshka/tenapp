@@ -46,7 +46,7 @@ public class AuthService : IAuthService
         _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
     }
 
-    public async Task<AuthResult<UserResponseDto>> RegisterAsync(RegisterUserDto dto, HttpResponse response)
+    public async Task<AuthResult<UserResponseDto>> RegisterAsync(RegisterUserDto dto, HttpRequest request, HttpResponse response)
     {
         if (string.IsNullOrWhiteSpace(dto.Login) ||
             string.IsNullOrWhiteSpace(dto.Email) ||
@@ -81,11 +81,11 @@ public class AuthService : IAuthService
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        await IssueTokensAsync(user, response);
+        await IssueTokensAsync(user, response, request);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
-    public async Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpResponse response)
+    public async Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpRequest request, HttpResponse response)
     {
         if (string.IsNullOrWhiteSpace(dto.Password) ||
             (string.IsNullOrWhiteSpace(dto.Login) && string.IsNullOrWhiteSpace(dto.Email)))
@@ -105,7 +105,7 @@ public class AuthService : IAuthService
         if (verifyResult == PasswordVerificationResult.Failed)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid credentials");
 
-        await IssueTokensAsync(user, response);
+        await IssueTokensAsync(user, response, request);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
@@ -125,7 +125,7 @@ public class AuthService : IAuthService
         if (!TryGetUserId(principal, out var subjectUserId) || subjectUserId != user.Id)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Refresh token subject mismatch");
 
-        await IssueTokensAsync(user, response);
+        await IssueTokensAsync(user, response, request);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
@@ -208,7 +208,7 @@ public class AuthService : IAuthService
             }
         }
 
-        DeleteAuthCookies(response);
+        DeleteAuthCookies(response, request);
     }
 
     public async Task<AuthResult<UserResponseDto>> MeAsync(ClaimsPrincipal principal)
@@ -223,7 +223,7 @@ public class AuthService : IAuthService
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
-    private async Task IssueTokensAsync(User user, HttpResponse response)
+    private async Task IssueTokensAsync(User user, HttpResponse response, HttpRequest? httpRequest)
     {
         var accessToken = GenerateToken(user.Id, tokenType: "access", expiresIn: TimeSpan.FromMinutes(30));
         var refreshToken = GenerateToken(user.Id, tokenType: "refresh", expiresIn: TimeSpan.FromDays(2));
@@ -231,8 +231,8 @@ public class AuthService : IAuthService
         user.RefreshToken = refreshToken;
         await _dbContext.SaveChangesAsync();
 
-        AppendCookie(response, AccessCookieName, accessToken, TimeSpan.FromMinutes(30));
-        AppendCookie(response, RefreshCookieName, refreshToken, TimeSpan.FromDays(2));
+        AppendCookie(response, httpRequest, AccessCookieName, accessToken, TimeSpan.FromMinutes(30));
+        AppendCookie(response, httpRequest, RefreshCookieName, refreshToken, TimeSpan.FromDays(2));
     }
 
     private string GenerateToken(Guid userId, string tokenType, TimeSpan expiresIn)
@@ -294,32 +294,30 @@ public class AuthService : IAuthService
         return Guid.TryParse(subject, out userId);
     }
 
-    private static void AppendCookie(HttpResponse response, string cookieName, string value, TimeSpan expiresIn)
+    private static void AppendCookie(HttpResponse response, HttpRequest? request, string cookieName, string value, TimeSpan expiresIn)
     {
         response.Cookies.Append(cookieName, value, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = request?.IsHttps ?? false,
+            SameSite = SameSiteMode.Lax,
+            Path = "/",
             Expires = DateTimeOffset.UtcNow.Add(expiresIn)
         });
     }
 
-    private static void DeleteAuthCookies(HttpResponse response)
+    private static void DeleteAuthCookies(HttpResponse response, HttpRequest request)
     {
-        response.Cookies.Delete(AccessCookieName, new CookieOptions
+        var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict
-        });
+            Secure = request.IsHttps,
+            SameSite = SameSiteMode.Lax,
+            Path = "/"
+        };
 
-        response.Cookies.Delete(RefreshCookieName, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict
-        });
+        response.Cookies.Delete(AccessCookieName, cookieOptions);
+        response.Cookies.Delete(RefreshCookieName, cookieOptions);
     }
 
     private static UserResponseDto ToUserResponse(User user)

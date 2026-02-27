@@ -19,14 +19,14 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserResponseDto>> Register(RegisterUserDto dto)
     {
-        var result = await _authService.RegisterAsync(dto, Response);
+        var result = await _authService.RegisterAsync(dto, Request, Response);
         return ToActionResult(result);
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<UserResponseDto>> Login(LoginUserDto dto)
     {
-        var result = await _authService.LoginAsync(dto, Response);
+        var result = await _authService.LoginAsync(dto, Request, Response);
         return ToActionResult(result);
     }
 
