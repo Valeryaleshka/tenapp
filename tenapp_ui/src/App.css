@@ -170,17 +170,6 @@
     color: var(--app-accent);
 }
 
-.app-skeleton-glow {
-    width: 100%;
-}
-
-.app-skeleton-line.placeholder {
-    background-color: #e9f1fa;
-    border-radius: 20px;
-    min-height: 0.85rem;
-    opacity: 1;
-}
-
 .btn {
     border-radius: 10px;
     font-weight: 600;

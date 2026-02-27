@@ -1,7 +1,8 @@
-import { Form, Placeholder, Table } from 'react-bootstrap';
+import { Form, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AppPagination } from '../../../components/app-pagination.tsx';
+import { LoadingWrapper } from '../../../components/loading-wrapper.tsx';
 import {
     tenantService,
     type Tenant,
@@ -93,57 +94,45 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                 </Form.Select>
             </div>
 
-            <Table striped bordered hover className="mt-4 align-middle">
-                <thead>
-                    <tr>
-                        <th>
-                            <button
-                                type="button"
-                                className={`app-sort-header ${sortBy === 'firstName' ? 'active' : ''}`}
-                                onClick={() => applySort('firstName')}
-                            >
-                                <span>First Name</span>
-                                <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>^</span>
-                                    <span className={`${getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
-                                </span>
-                            </button>
-                        </th>
-                        <th>
-                            <button
-                                type="button"
-                                className={`app-sort-header ${sortBy === 'lastName' ? 'active' : ''}`}
-                                onClick={() => applySort('lastName')}
-                            >
-                                <span>Last Name</span>
-                                <span className="app-sort-arrows" aria-hidden>
-                                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>^</span>
-                                    <span className={`${getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
-                                </span>
-                            </button>
-                        </th>
-                        <th>Phone</th>
-                        <th className="d-none d-md-table-cell">Email</th>
-                        <th className="d-none d-md-table-cell">Assigned Property</th>
-                        <th className="d-none d-md-table-cell">Created At</th>
-                        <th className="table-action-col"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {isLoading ? (
-                        Array.from({ length: 6 }).map((_, index) => (
-                            <tr key={`tenant-skeleton-${index}`}>
-                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
-                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
-                                <td><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={7} className="app-skeleton-line" /></Placeholder></td>
-                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={9} className="app-skeleton-line" /></Placeholder></td>
-                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={11} className="app-skeleton-line" /></Placeholder></td>
-                                <td className="d-none d-md-table-cell"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
-                                <td className="table-action-col"><Placeholder animation="glow" className="app-skeleton-glow"><Placeholder xs={8} className="app-skeleton-line" /></Placeholder></td>
-                            </tr>
-                        ))
-                    ) : (
-                        tenants.map((tenant) => (
+            <LoadingWrapper isLoading={isLoading}>
+                <Table striped bordered hover className="mt-4 align-middle">
+                    <thead>
+                        <tr>
+                            <th>
+                                <button
+                                    type="button"
+                                    className={`app-sort-header ${sortBy === 'firstName' ? 'active' : ''}`}
+                                    onClick={() => applySort('firstName')}
+                                >
+                                    <span>First Name</span>
+                                    <span className="app-sort-arrows" aria-hidden>
+                                        <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>^</span>
+                                        <span className={`${getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
+                                    </span>
+                                </button>
+                            </th>
+                            <th>
+                                <button
+                                    type="button"
+                                    className={`app-sort-header ${sortBy === 'lastName' ? 'active' : ''}`}
+                                    onClick={() => applySort('lastName')}
+                                >
+                                    <span>Last Name</span>
+                                    <span className="app-sort-arrows" aria-hidden>
+                                        <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>^</span>
+                                        <span className={`${getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')} app-sort-arrow-down`}>^</span>
+                                    </span>
+                                </button>
+                            </th>
+                            <th>Phone</th>
+                            <th className="d-none d-md-table-cell">Email</th>
+                            <th className="d-none d-md-table-cell">Assigned Property</th>
+                            <th className="d-none d-md-table-cell">Created At</th>
+                            <th className="table-action-col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {tenants.map((tenant) => (
                             <tr key={tenant.id} className={tenant.assignedProperties.length > 0 ? 'table-info' : ''}>
                                 <td>{tenant.firstName}</td>
                                 <td>{tenant.lastName}</td>
@@ -157,10 +146,10 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                                     </Link>
                                 </td>
                             </tr>
-                        ))
-                    )}
-                </tbody>
-            </Table>
+                        ))}
+                    </tbody>
+                </Table>
+            </LoadingWrapper>
 
             <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">Total: {totalCount}</small>
