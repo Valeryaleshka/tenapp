@@ -63,3 +63,6 @@ npm run preview
 
 - API client uses `withCredentials: true`, so auth relies on cookies from backend.
 - If login appears stuck, verify backend is running and CORS/proxy target is reachable.
+- Docker/Nginx proxy target is configurable via `API_UPSTREAM` env var (default: `api:8080`).
+- For Linux/EC2 deployments, prefer running UI + API on the same Docker network and keep `API_UPSTREAM=api:8080`.
+- If API runs on the host instead of Docker network, set `API_UPSTREAM=host.docker.internal:8080` and add host mapping (`--add-host=host.docker.internal:host-gateway`).
