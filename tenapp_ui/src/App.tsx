@@ -15,11 +15,11 @@ import { TenantsPage } from './pages/tenants/tenants-page.tsx';
 
 function AuthLayout() {
     return (
-        <Container className="vh-100 d-flex align-items-center justify-content-center">
-            <div className="w-100" style={{ maxWidth: '420px' }}>
+        <div className="auth-layout">
+            <div className="auth-card-wrap">
                 <Outlet />
             </div>
-        </Container>
+        </div>
     );
 }
 
