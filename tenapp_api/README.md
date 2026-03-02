@@ -68,6 +68,24 @@ Stop:
 docker compose down
 ```
 
+## HTTPS on EC2 (host nginx + existing cert files)
+
+Use host-installed nginx with repo config file `nginx/nginx.config`:
+
+- redirects `http://` to `https://`
+- terminates TLS with:
+  - `/home/ec2-user/nginx/certs.pem`
+  - `/home/ec2-user/nginx/key.pem`
+- proxies traffic to API on `127.0.0.1:8080`
+
+Install and apply config:
+
+```bash
+sudo cp nginx/nginx.config /etc/nginx/conf.d/tenapp.conf
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
 ## Useful Commands
 
 Start only database tools:
