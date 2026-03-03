@@ -1,4 +1,3 @@
-
 services:
   api:
     build:
@@ -7,9 +6,6 @@ services:
     container_name: tenapp-core-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=tenapp_core_db;Username=postgres;Password=postgres123
+      ConnectionStrings__DefaultConnection: Host=tenapp-db.cd08g2oc4b37.us-east-2.rds.amazonaws.com;Port=5432;Database=tenapp_db;Username=postgres;Password=postgrespass
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
