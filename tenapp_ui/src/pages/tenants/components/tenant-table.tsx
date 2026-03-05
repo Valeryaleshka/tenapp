@@ -1,4 +1,3 @@
-import { Form, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AppPagination } from '../../../components/app-pagination.tsx';
@@ -14,11 +13,7 @@ import {
     type SortDirection,
 } from '../../../services/sort/sort.service.ts';
 
-interface TenantTableProps {
-    refreshTrigger: number;
-}
-
-export function TenantTable({ refreshTrigger }: TenantTableProps) {
+export function TenantTable() {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -28,12 +23,7 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        setPage(1);
-    }, [refreshTrigger]);
-
-    useEffect(() => {
         let isCancelled = false;
-        setIsLoading(true);
 
         void tenantService.getAll(page, 20, sortBy, sortDir).then((response) => {
             if (isCancelled) {
@@ -56,22 +46,30 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
         return () => {
             isCancelled = true;
         };
-    }, [page, refreshTrigger, sortBy, sortDir]);
+    }, [page, sortBy, sortDir]);
 
     const applySort = (field: TenantSortField) => {
         const nextDirection = getNextSortDirection(sortBy, field, sortDir);
+        setIsLoading(true);
         setSortBy(field);
         setSortDir(nextDirection);
         setPage(1);
     };
 
+    const handlePageChange = (nextPage: number) => {
+        setIsLoading(true);
+        setPage(nextPage);
+    };
+
     return (
         <>
             <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
-                <Form.Select
+                <select
+                    className="form-select"
                     aria-label="Sort tenants by field"
                     value={sortBy}
                     onChange={(event) => {
+                        setIsLoading(true);
                         setSortBy(event.target.value as TenantSortField);
                         setPage(1);
                     }}
@@ -79,11 +77,13 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                 >
                     <option value="firstName">Sort: First Name</option>
                     <option value="lastName">Sort: Last Name</option>
-                </Form.Select>
-                <Form.Select
+                </select>
+                <select
+                    className="form-select"
                     aria-label="Sort tenants direction"
                     value={sortDir}
                     onChange={(event) => {
+                        setIsLoading(true);
                         setSortDir(event.target.value as SortDirection);
                         setPage(1);
                     }}
@@ -91,11 +91,11 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                 >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
-                </Form.Select>
+                </select>
             </div>
 
             <LoadingWrapper isLoading={isLoading}>
-                <Table striped bordered hover className="mt-4 align-middle">
+                <table className="table table-striped table-bordered table-hover mt-4 align-middle">
                     <thead>
                         <tr>
                             <th>
@@ -148,12 +148,12 @@ export function TenantTable({ refreshTrigger }: TenantTableProps) {
                             </tr>
                         ))}
                     </tbody>
-                </Table>
+                </table>
             </LoadingWrapper>
 
             <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">Total: {totalCount}</small>
-                <AppPagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                <AppPagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
         </>
     );

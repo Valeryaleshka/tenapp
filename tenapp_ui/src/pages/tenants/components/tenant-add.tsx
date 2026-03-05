@@ -1,5 +1,4 @@
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
-import { Button, Form, Modal } from 'react-bootstrap';
 import { tenantService } from '../../../services/tenants/tenant.service.ts';
 
 interface AddTenantProps {
@@ -61,63 +60,83 @@ export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
         await submitAdd();
     };
 
+    if (!show) {
+        return null;
+    }
+
     return (
-        <Modal show={show} onHide={onHide} centered>
-            <Modal.Header closeButton>
-                <Modal.Title>Add Tenant</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleChange}
-                            placeholder="Enter first name"
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Last Name</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleChange}
-                            placeholder="Enter last name"
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Phone Number</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            placeholder="Enter phone number"
-                        />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter email"
-                        />
-                    </Form.Group>
-                </Form>
-            </Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={onHide} disabled={isSubmitting}>
-                    Cancel
-                </Button>
-                <Button variant="primary" onClick={() => void submitAdd()} disabled={isSubmitting}>
-                    {isSubmitting ? 'Adding...' : 'Add Tenant'}
-                </Button>
-            </Modal.Footer>
-        </Modal>
+        <>
+            <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Add Tenant</h5>
+                            <button type="button" className="btn-close" aria-label="Close" onClick={onHide} />
+                        </div>
+                        <div className="modal-body">
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-3">
+                                    <label htmlFor="tenant-firstName" className="form-label">First Name</label>
+                                    <input
+                                        id="tenant-firstName"
+                                        className="form-control"
+                                        type="text"
+                                        name="firstName"
+                                        value={formData.firstName}
+                                        onChange={handleChange}
+                                        placeholder="Enter first name"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="tenant-lastName" className="form-label">Last Name</label>
+                                    <input
+                                        id="tenant-lastName"
+                                        className="form-control"
+                                        type="text"
+                                        name="lastName"
+                                        value={formData.lastName}
+                                        onChange={handleChange}
+                                        placeholder="Enter last name"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="tenant-phoneNumber" className="form-label">Phone Number</label>
+                                    <input
+                                        id="tenant-phoneNumber"
+                                        className="form-control"
+                                        type="text"
+                                        name="phoneNumber"
+                                        value={formData.phoneNumber}
+                                        onChange={handleChange}
+                                        placeholder="Enter phone number"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="tenant-email" className="form-label">Email</label>
+                                    <input
+                                        id="tenant-email"
+                                        className="form-control"
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="Enter email"
+                                    />
+                                </div>
+                            </form>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" onClick={onHide} disabled={isSubmitting}>
+                                Cancel
+                            </button>
+                            <button type="button" className="btn btn-primary" onClick={() => void submitAdd()} disabled={isSubmitting}>
+                                {isSubmitting ? 'Adding...' : 'Add Tenant'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="modal-backdrop fade show" onClick={onHide} />
+        </>
     );
 }

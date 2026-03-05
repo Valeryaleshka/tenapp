@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { Button, Container } from 'react-bootstrap';
 import { AddProperty } from './components/property-add.tsx';
 import { PropertyTable } from './components/property-table.tsx';
 
@@ -12,20 +11,20 @@ export function PropertiesPage() {
     }, []);
 
     return (
-        <Container className="py-4">
+        <div className="container py-4">
             <div className="page-toolbar d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h4 mb-0 page-title">Properties</h1>
-                <Button variant="primary" onClick={() => setShowAddModal(true)}>
+                <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(true)}>
                     Add Property
-                </Button>
+                </button>
             </div>
 
-            <PropertyTable refreshTrigger={refreshTrigger} />
+            <PropertyTable key={refreshTrigger} />
             <AddProperty
                 show={showAddModal}
                 onHide={() => setShowAddModal(false)}
                 onPropertyAdded={handlePropertyAdded}
             />
-        </Container>
+        </div>
     );
 }

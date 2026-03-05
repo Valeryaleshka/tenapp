@@ -33,12 +33,6 @@ export const apiClient = axios.create({
     headers: JSON_HEADERS,
 });
 
-const refreshClient = axios.create({
-    baseURL: '/api',
-    withCredentials: true,
-    headers: JSON_HEADERS,
-});
-
 let refreshPromise: Promise<void> | null = null;
 
 apiClient.interceptors.response.use(
@@ -65,7 +59,7 @@ apiClient.interceptors.response.use(
 
         try {
             if (!refreshPromise) {
-                refreshPromise = refreshClient.post('/auth/refresh').then(() => undefined);
+                refreshPromise = apiClient.post('/auth/refresh').then(() => undefined);
             }
 
             await refreshPromise;

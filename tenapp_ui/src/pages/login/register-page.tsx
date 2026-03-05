@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Card, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context.tsx';
 
@@ -32,71 +31,81 @@ export function RegisterPage() {
     };
 
     return (
-        <Card className="shadow-sm">
-            <Card.Body>
-                <Card.Title className="mb-3">Register</Card.Title>
-                {error && <Alert variant="danger">{error}</Alert>}
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <h1 className="h5 mb-3">Register</h1>
+                {error && <div className="alert alert-danger">{error}</div>}
 
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>First Name</Form.Label>
-                        <Form.Control
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label htmlFor="firstName" className="form-label">First Name</label>
+                        <input
+                            id="firstName"
+                            className="form-control"
                             type="text"
                             required
                             value={formData.firstName}
                             onChange={(event) => setFormData((prev) => ({ ...prev, firstName: event.target.value }))}
                             placeholder="Enter first name"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Second Name</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="secondName" className="form-label">Second Name</label>
+                        <input
+                            id="secondName"
+                            className="form-control"
                             type="text"
                             required
                             value={formData.secondName}
                             onChange={(event) => setFormData((prev) => ({ ...prev, secondName: event.target.value }))}
                             placeholder="Enter second name"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Login</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="registerLogin" className="form-label">Login</label>
+                        <input
+                            id="registerLogin"
+                            className="form-control"
                             type="text"
                             required
                             value={formData.login}
                             onChange={(event) => setFormData((prev) => ({ ...prev, login: event.target.value }))}
                             placeholder="Choose login"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="registerEmail" className="form-label">Email</label>
+                        <input
+                            id="registerEmail"
+                            className="form-control"
                             type="email"
                             required
                             value={formData.email}
                             onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
                             placeholder="Enter email"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="registerPassword" className="form-label">Password</label>
+                        <input
+                            id="registerPassword"
+                            className="form-control"
                             type="password"
                             required
                             value={formData.password}
                             onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
                             placeholder="Choose password"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-100">
+                    <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
                         {isSubmitting ? 'Creating account...' : 'Register'}
-                    </Button>
-                </Form>
+                    </button>
+                </form>
 
                 <div className="mt-3 text-center">
                     Already have an account?{' '}
@@ -104,7 +113,7 @@ export function RegisterPage() {
                         Login
                     </Link>
                 </div>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

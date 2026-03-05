@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Spinner } from 'react-bootstrap';
 
 interface LoadingWrapperProps {
     isLoading: boolean;
@@ -18,7 +17,7 @@ export function LoadingWrapper({ isLoading, children }: LoadingWrapperProps) {
                     aria-live="polite"
                     aria-label="Loading table data"
                 >
-                    <Spinner animation="border" variant="primary" />
+                    <div className="spinner-border text-primary" role="status" />
                 </div>
             )}
         </div>

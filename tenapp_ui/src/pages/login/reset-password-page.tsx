@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Card, Form } from 'react-bootstrap';
 import { Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../../services/auth/auth.service.ts';
 
@@ -39,51 +38,55 @@ export function ResetPasswordPage() {
     };
 
     return (
-        <Card className="shadow-sm">
-            <Card.Body>
-                <Card.Title className="mb-3">Set New Password</Card.Title>
-                {!token && <Alert variant="warning">Token was not found in the URL.</Alert>}
-                {error && <Alert variant="danger">{error}</Alert>}
-                {success && <Alert variant="success">{success}</Alert>}
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <h1 className="h5 mb-3">Set New Password</h1>
+                {!token && <div className="alert alert-warning">Token was not found in the URL.</div>}
+                {error && <div className="alert alert-danger">{error}</div>}
+                {success && <div className="alert alert-success">{success}</div>}
 
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label htmlFor="resetEmail" className="form-label">Email</label>
+                        <input
+                            id="resetEmail"
+                            className="form-control"
                             type="email"
                             required
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             placeholder="Enter your email"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>New Password</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="newPassword" className="form-label">New Password</label>
+                        <input
+                            id="newPassword"
+                            className="form-control"
                             type="password"
                             required
                             value={newPassword}
                             onChange={(event) => setNewPassword(event.target.value)}
                             placeholder="Enter new password"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Button
+                    <button
                         type="submit"
                         disabled={isSubmitting || !token}
-                        className="w-100"
+                        className="btn btn-primary w-100"
                     >
                         {isSubmitting ? 'Resetting...' : 'Reset password'}
-                    </Button>
-                </Form>
+                    </button>
+                </form>
 
                 <div className="mt-3 text-center">
                     <Link to="/login" className="btn btn-link p-0">
                         Back to login
                     </Link>
                 </div>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

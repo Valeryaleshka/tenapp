@@ -38,8 +38,10 @@ export const propertyService = {
         pageSize = 20,
         sortBy: PropertySortField = 'name',
         sortDir: SortDirection = 'asc',
+        signal?: AbortSignal,
     ): Promise<PagedResponse<Property>> => {
         const response = await apiClient.get('/properties', {
+            signal,
             params: { page, pageSize, sortBy, sortDir },
         });
         return response.data;

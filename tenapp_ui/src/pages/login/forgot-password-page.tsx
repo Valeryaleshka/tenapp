@@ -1,5 +1,4 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Card, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { authService } from '../../services/auth/auth.service.ts';
 
@@ -26,35 +25,37 @@ export function ForgotPasswordPage() {
     };
 
     return (
-        <Card className="shadow-sm">
-            <Card.Body>
-                <Card.Title className="mb-3">Reset Password</Card.Title>
-                {error && <Alert variant="danger">{error}</Alert>}
-                {success && <Alert variant="success">{success}</Alert>}
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <h1 className="h5 mb-3">Reset Password</h1>
+                {error && <div className="alert alert-danger">{error}</div>}
+                {success && <div className="alert alert-success">{success}</div>}
 
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
+                <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                        <label htmlFor="forgot-email" className="form-label">Email</label>
+                        <input
+                            id="forgot-email"
+                            className="form-control"
                             type="email"
                             required
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             placeholder="Enter your email"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-100">
+                    <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
                         {isSubmitting ? 'Sending...' : 'Send reset link'}
-                    </Button>
-                </Form>
+                    </button>
+                </form>
 
                 <div className="mt-3 text-center">
                     <Link to="/login" className="btn btn-link p-0">
                         Back to login
                     </Link>
                 </div>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

@@ -1,5 +1,4 @@
 import { type ChangeEvent, useEffect, useState } from 'react';
-import { Alert, Button, Card, Form, Modal, Spinner } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { tenantService, type Tenant } from '../../services/tenants/tenant.service.ts';
 
@@ -89,13 +88,17 @@ export function TenantDetailPage() {
     };
 
     if (isLoading) {
-        return <div className="py-4"><Spinner animation="border" /></div>;
+        return (
+            <div className="py-4">
+                <div className="spinner-border text-primary" role="status" aria-label="Loading tenant details" />
+            </div>
+        );
     }
 
     if (!tenant) {
         return (
             <div className="py-4">
-                <Alert variant="warning">Tenant not found or has been deleted.</Alert>
+                <div className="alert alert-warning">Tenant not found or has been deleted.</div>
                 <Link to="/tenants" className="btn btn-secondary">Back to Tenants</Link>
             </div>
         );
@@ -107,12 +110,12 @@ export function TenantDetailPage() {
                 <h1 className="h4 mb-0 page-title">Tenant Details</h1>
                 <div className="d-flex gap-2">
                     <Link to="/tenants" className="btn btn-secondary">Back</Link>
-                    <Button variant="primary" onClick={() => setShowEditModal(true)}>Edit</Button>
+                    <button type="button" className="btn btn-primary" onClick={() => setShowEditModal(true)}>Edit</button>
                 </div>
             </div>
 
-            <Card>
-                <Card.Body>
+            <div className="card">
+                <div className="card-body">
                     <div><strong>First Name:</strong> {tenant.firstName}</div>
                     <div><strong>Last Name:</strong> {tenant.lastName}</div>
                     <div><strong>Phone Number:</strong> {tenant.phoneNumber}</div>
@@ -131,47 +134,57 @@ export function TenantDetailPage() {
                                 </span>
                             ))}
                     </div>
-                </Card.Body>
-            </Card>
+                </div>
+            </div>
 
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Edit Tenant</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>First Name</Form.Label>
-                            <Form.Control type="text" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Last Name</Form.Label>
-                            <Form.Control type="text" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Phone Number</Form.Label>
-                            <Form.Control type="text" name="phoneNumber" value={editForm.phoneNumber} onChange={handleEditChange} />
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control type="email" name="email" value={editForm.email} onChange={handleEditChange} />
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer className="d-flex justify-content-between">
-                    <Button variant="danger" onClick={() => void handleDelete()} disabled={isSaving || isDeleting}>
-                        {isDeleting ? 'Deleting...' : 'Delete'}
-                    </Button>
-                    <div className="d-flex gap-2">
-                        <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={isSaving || isDeleting}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" onClick={() => void handleSave()} disabled={isSaving || isDeleting}>
-                            {isSaving ? 'Saving...' : 'Save'}
-                        </Button>
+            {showEditModal && (
+                <>
+                    <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+                        <div className="modal-dialog modal-dialog-centered">
+                            <div className="modal-content">
+                                <div className="modal-header">
+                                    <h5 className="modal-title">Edit Tenant</h5>
+                                    <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowEditModal(false)} />
+                                </div>
+                                <div className="modal-body">
+                                    <form>
+                                        <div className="mb-3">
+                                            <label htmlFor="edit-tenant-firstName" className="form-label">First Name</label>
+                                            <input id="edit-tenant-firstName" className="form-control" type="text" name="firstName" value={editForm.firstName} onChange={handleEditChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="edit-tenant-lastName" className="form-label">Last Name</label>
+                                            <input id="edit-tenant-lastName" className="form-control" type="text" name="lastName" value={editForm.lastName} onChange={handleEditChange} />
+                                        </div>
+                                        <div className="mb-3">
+                                            <label htmlFor="edit-tenant-phoneNumber" className="form-label">Phone Number</label>
+                                            <input id="edit-tenant-phoneNumber" className="form-control" type="text" name="phoneNumber" value={editForm.phoneNumber} onChange={handleEditChange} />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="edit-tenant-email" className="form-label">Email</label>
+                                            <input id="edit-tenant-email" className="form-control" type="email" name="email" value={editForm.email} onChange={handleEditChange} />
+                                        </div>
+                                    </form>
+                                </div>
+                                <div className="modal-footer d-flex justify-content-between">
+                                    <button type="button" className="btn btn-danger" onClick={() => void handleDelete()} disabled={isSaving || isDeleting}>
+                                        {isDeleting ? 'Deleting...' : 'Delete'}
+                                    </button>
+                                    <div className="d-flex gap-2">
+                                        <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)} disabled={isSaving || isDeleting}>
+                                            Cancel
+                                        </button>
+                                        <button type="button" className="btn btn-primary" onClick={() => void handleSave()} disabled={isSaving || isDeleting}>
+                                            {isSaving ? 'Saving...' : 'Save'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </Modal.Footer>
-            </Modal>
+                    <div className="modal-backdrop fade show" onClick={() => setShowEditModal(false)} />
+                </>
+            )}
         </div>
     );
 }

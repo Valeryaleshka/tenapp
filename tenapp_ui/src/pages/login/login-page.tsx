@@ -1,7 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { Alert, Button, Card, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/auth-context.tsx';
+
+interface LoginFormErrors {
+    email?: string;
+    password?: string;
+}
 
 export function LoginPage() {
     const { login } = useAuth();
@@ -13,13 +17,32 @@ export function LoginPage() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [formErrors, setFormErrors] = useState<LoginFormErrors>({});
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
+        setFormErrors({});
 
-        if (!formData.login.trim() && !formData.email.trim()) {
+        const trimmedLogin = formData.login.trim();
+        const trimmedEmail = formData.email.trim();
+        const nextErrors: LoginFormErrors = {};
+
+        if (!trimmedLogin && !trimmedEmail) {
             setError('Enter login or email.');
+            return;
+        }
+
+        if (trimmedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+            nextErrors.email = 'Enter a valid email address.';
+        }
+
+        if (!formData.password.trim()) {
+            nextErrors.password = 'Password is required.';
+        }
+
+        if (Object.keys(nextErrors).length > 0) {
+            setFormErrors(nextErrors);
             return;
         }
 
@@ -28,8 +51,8 @@ export function LoginPage() {
         try {
             await login({
                 password: formData.password,
-                login: formData.login.trim() || undefined,
-                email: formData.email.trim() || undefined,
+                login: trimmedLogin || undefined,
+                email: trimmedEmail || undefined,
             });
             navigate('/properties', { replace: true });
         } catch {
@@ -40,46 +63,66 @@ export function LoginPage() {
     };
 
     return (
-        <Card className="shadow-sm">
-            <Card.Body>
-                <Card.Title className="mb-3">Login</Card.Title>
-                {error && <Alert variant="danger">{error}</Alert>}
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Login</Form.Label>
-                        <Form.Control
+        <div className="card shadow-sm">
+            <div className="card-body">
+                <h1 className="h5 mb-3">Login</h1>
+                {error && <div className="alert alert-danger">{error}</div>}
+                <form onSubmit={handleSubmit} noValidate>
+                    <div className="mb-3">
+                        <label htmlFor="login" className="form-label">Login</label>
+                        <input
+                            id="login"
+                            className="form-control"
                             type="text"
                             value={formData.login}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, login: event.target.value }))}
+                            onChange={(event) => {
+                                setFormData((prev) => ({ ...prev, login: event.target.value }));
+                                setError(null);
+                            }}
                             placeholder="Enter login"
                         />
-                    </Form.Group>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            type="email"
+                    <div className="mb-3">
+                        <label htmlFor="email" className="form-label">Email</label>
+                        <input
+                            id="email"
+                            className={`form-control ${formErrors.email ? 'is-invalid' : ''}`}
+                            type="text"
+                            aria-invalid={Boolean(formErrors.email)}
                             value={formData.email}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
+                            onChange={(event) => {
+                                setFormData((prev) => ({ ...prev, email: event.target.value }));
+                                setFormErrors((prev) => ({ ...prev, email: undefined }));
+                                setError(null);
+                            }}
                             placeholder="Enter email"
                         />
-                    </Form.Group>
+                        {formErrors.email && <div className="invalid-feedback d-block">{formErrors.email}</div>}
+                    </div>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
+                    <div className="mb-3">
+                        <label htmlFor="password" className="form-label">Password</label>
+                        <input
+                            id="password"
+                            className={`form-control ${formErrors.password ? 'is-invalid' : ''}`}
                             type="password"
-                            required
+                            aria-invalid={Boolean(formErrors.password)}
                             value={formData.password}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, password: event.target.value }))}
+                            onChange={(event) => {
+                                setFormData((prev) => ({ ...prev, password: event.target.value }));
+                                setFormErrors((prev) => ({ ...prev, password: undefined }));
+                                setError(null);
+                            }}
                             placeholder="Enter password"
                         />
-                    </Form.Group>
+                        {formErrors.password && <div className="invalid-feedback d-block">{formErrors.password}</div>}
+                    </div>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-100">
+                    <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
                         {isSubmitting ? 'Signing in...' : 'Login'}
-                    </Button>
-                </Form>
+                    </button>
+                </form>
 
                 <div className="mt-3 text-center">
                     No account?{' '}
@@ -92,7 +135,7 @@ export function LoginPage() {
                         Forgot password?
                     </Link>
                 </div>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }

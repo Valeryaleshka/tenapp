@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button, Offcanvas } from 'react-bootstrap';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth-context.tsx';
 
@@ -31,9 +30,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             </nav>
 
             <div className="mt-auto p-3 border-top">
-                <Button variant="outline-danger" className="w-100" onClick={() => void handleLogout()}>
+                <button type="button" className="btn btn-outline-danger w-100" onClick={() => void handleLogout()}>
                     Logout
-                </Button>
+                </button>
             </div>
         </div>
     );
@@ -53,14 +52,14 @@ export function AppLayout() {
             <div className="app-main flex-grow-1 d-flex flex-column">
                 <header className="app-top-header d-flex align-items-center justify-content-between px-3 px-lg-4 py-3 border-bottom">
                     <div className="d-flex align-items-center gap-2">
-                        <Button
-                            variant="outline-secondary"
+                        <button
+                            type="button"
+                            className="btn btn-outline-secondary d-lg-none"
                             onClick={() => setShowDrawer(true)}
                             aria-label="Open menu"
-                            className="d-lg-none"
                         >
                             &#9776;
-                        </Button>
+                        </button>
                         <div className="fw-semibold d-lg-none">Tenapp</div>
                     </div>
                     <div className="fw-semibold fs-5 app-greeting">Hello, {displayName}!</div>
@@ -71,14 +70,22 @@ export function AppLayout() {
                 </main>
             </div>
 
-            <Offcanvas show={showDrawer} onHide={() => setShowDrawer(false)} placement="start" className="d-lg-none">
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>Menu</Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body className="p-0">
+            <div
+                className={`offcanvas offcanvas-start d-lg-none ${showDrawer ? 'show' : ''}`}
+                tabIndex={-1}
+                style={{ visibility: showDrawer ? 'visible' : 'hidden' }}
+                aria-labelledby="mobile-menu-title"
+                aria-hidden={!showDrawer}
+            >
+                <div className="offcanvas-header">
+                    <h5 id="mobile-menu-title" className="offcanvas-title">Menu</h5>
+                    <button type="button" className="btn-close" aria-label="Close menu" onClick={() => setShowDrawer(false)} />
+                </div>
+                <div className="offcanvas-body p-0">
                     <SidebarContent onNavigate={() => setShowDrawer(false)} />
-                </Offcanvas.Body>
-            </Offcanvas>
+                </div>
+            </div>
+            {showDrawer && <div className="offcanvas-backdrop fade show d-lg-none" onClick={() => setShowDrawer(false)} />}
         </div>
     );
 }

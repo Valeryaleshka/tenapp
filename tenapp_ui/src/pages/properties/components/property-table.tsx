@@ -1,4 +1,3 @@
-import { Form, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { AppPagination } from '../../../components/app-pagination.tsx';
@@ -14,11 +13,7 @@ import {
     type SortDirection,
 } from '../../../services/sort/sort.service.ts';
 
-interface PropertyTableProps {
-    refreshTrigger: number;
-}
-
-export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
+export function PropertyTable() {
     const [properties, setProperties] = useState<Property[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -28,14 +23,10 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        setPage(1);
-    }, [refreshTrigger]);
-
-    useEffect(() => {
+        const controller = new AbortController();
         let isCancelled = false;
-        setIsLoading(true);
 
-        void propertyService.getAll(page, 20, sortBy, sortDir).then((response) => {
+        void propertyService.getAll(page, 20, sortBy, sortDir, controller.signal).then((response) => {
             if (isCancelled) {
                 return;
             }
@@ -54,24 +45,33 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
         });
 
         return () => {
+            controller.abort();
             isCancelled = true;
         };
-    }, [page, refreshTrigger, sortBy, sortDir]);
+    }, [page, sortBy, sortDir]);
 
     const applySort = (field: PropertySortField) => {
         const nextDirection = getNextSortDirection(sortBy, field, sortDir);
+        setIsLoading(true);
         setSortBy(field);
         setSortDir(nextDirection);
         setPage(1);
     };
 
+    const handlePageChange = (nextPage: number) => {
+        setIsLoading(true);
+        setPage(nextPage);
+    };
+
     return (
         <>
             <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
-                <Form.Select
+                <select
+                    className="form-select"
                     aria-label="Sort properties by field"
                     value={sortBy}
                     onChange={(event) => {
+                        setIsLoading(true);
                         setSortBy(event.target.value as PropertySortField);
                         setPage(1);
                     }}
@@ -80,11 +80,13 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                     <option value="name">Sort: Name</option>
                     <option value="type">Sort: Type</option>
                     <option value="level">Sort: Level</option>
-                </Form.Select>
-                <Form.Select
+                </select>
+                <select
+                    className="form-select"
                     aria-label="Sort properties direction"
                     value={sortDir}
                     onChange={(event) => {
+                        setIsLoading(true);
                         setSortDir(event.target.value as SortDirection);
                         setPage(1);
                     }}
@@ -92,11 +94,11 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                 >
                     <option value="asc">Ascending</option>
                     <option value="desc">Descending</option>
-                </Form.Select>
+                </select>
             </div>
 
             <LoadingWrapper isLoading={isLoading}>
-                <Table striped bordered hover className="align-middle">
+                <table className="table table-striped table-bordered table-hover align-middle">
                     <thead>
                         <tr>
                             <th>
@@ -161,12 +163,12 @@ export function PropertyTable({ refreshTrigger }: PropertyTableProps) {
                             </tr>
                         ))}
                     </tbody>
-                </Table>
+                </table>
             </LoadingWrapper>
 
             <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">Total: {totalCount}</small>
-                <AppPagination page={page} totalPages={totalPages} onPageChange={setPage} />
+                <AppPagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
         </>
     );

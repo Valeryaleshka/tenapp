@@ -1,5 +1,3 @@
-import { Pagination } from 'react-bootstrap';
-
 interface AppPaginationProps {
     page: number;
     totalPages: number;
@@ -18,40 +16,68 @@ export function AppPagination({ page, totalPages, onPageChange }: AppPaginationP
     };
 
     return (
-        <Pagination className="mb-0">
-            <Pagination.Prev onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1} />
+        <nav aria-label="Table pagination">
+            <ul className="pagination mb-0">
+                <li className={`page-item ${currentPage <= 1 ? 'disabled' : ''}`}>
+                    <button type="button" className="page-link" onClick={() => goToPage(currentPage - 1)} disabled={currentPage <= 1}>
+                        Previous
+                    </button>
+                </li>
 
-            <Pagination.Item active={currentPage === 1} onClick={() => goToPage(1)}>
-                1
-            </Pagination.Item>
+                <li className={`page-item ${currentPage === 1 ? 'active' : ''}`}>
+                    <button type="button" className="page-link" onClick={() => goToPage(1)}>
+                        1
+                    </button>
+                </li>
 
-            {currentPage > 3 && <Pagination.Ellipsis disabled />}
+                {currentPage > 3 && (
+                    <li className="page-item disabled">
+                        <span className="page-link">...</span>
+                    </li>
+                )}
 
-            {currentPage > 2 && (
-                <Pagination.Item onClick={() => goToPage(currentPage - 1)}>
-                    {currentPage - 1}
-                </Pagination.Item>
-            )}
+                {currentPage > 2 && (
+                    <li className="page-item">
+                        <button type="button" className="page-link" onClick={() => goToPage(currentPage - 1)}>
+                            {currentPage - 1}
+                        </button>
+                    </li>
+                )}
 
-            {currentPage !== 1 && currentPage !== safeTotalPages && (
-                <Pagination.Item active>{currentPage}</Pagination.Item>
-            )}
+                {currentPage !== 1 && currentPage !== safeTotalPages && (
+                    <li className="page-item active">
+                        <span className="page-link">{currentPage}</span>
+                    </li>
+                )}
 
-            {currentPage < safeTotalPages - 1 && (
-                <Pagination.Item onClick={() => goToPage(currentPage + 1)}>
-                    {currentPage + 1}
-                </Pagination.Item>
-            )}
+                {currentPage < safeTotalPages - 1 && (
+                    <li className="page-item">
+                        <button type="button" className="page-link" onClick={() => goToPage(currentPage + 1)}>
+                            {currentPage + 1}
+                        </button>
+                    </li>
+                )}
 
-            {currentPage < safeTotalPages - 2 && <Pagination.Ellipsis disabled />}
+                {currentPage < safeTotalPages - 2 && (
+                    <li className="page-item disabled">
+                        <span className="page-link">...</span>
+                    </li>
+                )}
 
-            {safeTotalPages > 1 && (
-                <Pagination.Item active={currentPage === safeTotalPages} onClick={() => goToPage(safeTotalPages)}>
-                    {safeTotalPages}
-                </Pagination.Item>
-            )}
+                {safeTotalPages > 1 && (
+                    <li className={`page-item ${currentPage === safeTotalPages ? 'active' : ''}`}>
+                        <button type="button" className="page-link" onClick={() => goToPage(safeTotalPages)}>
+                            {safeTotalPages}
+                        </button>
+                    </li>
+                )}
 
-            <Pagination.Next onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= safeTotalPages} />
-        </Pagination>
+                <li className={`page-item ${currentPage >= safeTotalPages ? 'disabled' : ''}`}>
+                    <button type="button" className="page-link" onClick={() => goToPage(currentPage + 1)} disabled={currentPage >= safeTotalPages}>
+                        Next
+                    </button>
+                </li>
+            </ul>
+        </nav>
     );
 }

@@ -1,5 +1,4 @@
 
-import { Container, Spinner } from 'react-bootstrap';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AppLayout } from './components/app-layout.tsx';
@@ -38,9 +37,9 @@ function App() {
 
     if (isLoading) {
         return (
-            <Container className="vh-100 d-flex justify-content-center align-items-center">
-                <Spinner animation="border" />
-            </Container>
+            <div className="container vh-100 d-flex justify-content-center align-items-center">
+                <div className="spinner-border text-primary" role="status" aria-label="Loading application" />
+            </div>
         );
     }
 
