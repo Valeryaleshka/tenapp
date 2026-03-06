@@ -62,6 +62,27 @@ export function LoginPage() {
         }
     };
 
+    function callWithTimeout(promise: () => Promise<unknown>, maxTimeout: number): Promise<unknown> {
+        const rejectPromise = () => new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Request timed out")), maxTimeout);
+        })
+
+        return Promise.race([promise(), rejectPromise()])
+
+    }
+
+    const slowTask = () => new Promise(resolve => setTimeout(() => resolve("Data loaded"), 2000));
+
+    const fastTask = () => new Promise(resolve => setTimeout(() => resolve("Fast data"), 500));
+
+    callWithTimeout(slowTask, 1000)
+        .then(console.log)
+        .catch(err => console.error("Error:", err)); // Output: Error: Request timed out
+
+    callWithTimeout(fastTask, 1000)
+        .then(console.log) // Output: Fast data
+        .catch(err => console.error("Error:", err));
+
     return (
         <div className="card shadow-sm">
             <div className="card-body">

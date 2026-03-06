@@ -9,6 +9,8 @@ export interface Property {
     price: number;
     level: number;
     createdAt: string;
+    startDate?: string | null;
+    endDate?: string | null;
     tenantId?: string | null;
     tenantFullName?: string | null;
 }
@@ -20,6 +22,8 @@ export interface PropertyUpsertPayload {
     price: number;
     level: number;
     tenantId?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
 }
 
 export interface PagedResponse<T> {

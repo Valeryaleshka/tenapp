@@ -69,6 +69,8 @@ public class PropertiesController : ControllerBase
                 Price = p.Price,
                 Level = p.Level,
                 CreatedAt = p.CreatedAt,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
                 TenantId = p.TenantId,
                 TenantFullName = p.Tenant == null ? null : p.Tenant.FirstName + " " + p.Tenant.LastName
             })
@@ -101,6 +103,8 @@ public class PropertiesController : ControllerBase
                 Address = p.Address,
                 Price = p.Price,
                 Level = p.Level,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
                 CreatedAt = p.CreatedAt,
                 TenantId = p.TenantId,
                 TenantFullName = p.Tenant == null ? null : p.Tenant.FirstName + " " + p.Tenant.LastName
@@ -143,6 +147,8 @@ public class PropertiesController : ControllerBase
             Price = dto.Price,
             Level = dto.Level,
             UserId = userId,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
             CreatedAt = DateTime.UtcNow,
             TenantId = selectedTenant?.Id
         };
@@ -178,6 +184,8 @@ public class PropertiesController : ControllerBase
         property.Address = dto.Address.Trim();
         property.Price = dto.Price;
         property.Level = dto.Level;
+        property.StartDate = dto.StartDate;
+        property.EndDate = dto.EndDate;
 
         Tenant? selectedTenant = null;
         if (dto.TenantId.HasValue)
@@ -232,6 +240,8 @@ public class PropertiesController : ControllerBase
             Price = property.Price,
             Level = property.Level,
             CreatedAt = property.CreatedAt,
+            StartDate = property.StartDate,
+            EndDate = property.EndDate,
             TenantId = tenant?.Id,
             TenantFullName = tenant == null ? null : $"{tenant.FirstName} {tenant.LastName}"
         };

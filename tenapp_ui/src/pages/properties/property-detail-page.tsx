@@ -18,6 +18,8 @@ export function PropertyDetailPage() {
         price: 0,
         level: 1,
         tenantId: null,
+        startDate: null,
+        endDate: null,
     });
 
     useEffect(() => {
@@ -40,6 +42,8 @@ export function PropertyDetailPage() {
                     address: propertyData.address,
                     price: propertyData.price,
                     level: propertyData.level,
+                    startDate: propertyData.startDate,
+                    endDate: propertyData.endDate,
                     tenantId: propertyData.tenantId ?? null,
                 });
             } catch (error) {
@@ -91,6 +95,8 @@ export function PropertyDetailPage() {
                 address: property.address,
                 price: property.price,
                 level: property.level,
+                startDate: property.startDate,
+                endDate: property.endDate,
                 tenantId: property.tenantId ?? null,
             });
         }
@@ -157,6 +163,8 @@ export function PropertyDetailPage() {
                             'Unassigned'
                         )}
                     </div>
+                    {property.startDate && <div><strong>Start Date:</strong> {new Date(property.startDate).toLocaleDateString()}</div>}
+                    {property.endDate && <div><strong>End Date:</strong> {new Date(property.endDate).toLocaleDateString()}</div>}
                 </div>
             </div>
 
@@ -190,6 +198,29 @@ export function PropertyDetailPage() {
                                         <div className="mb-3">
                                             <label htmlFor="edit-property-level" className="form-label">Level</label>
                                             <input id="edit-property-level" className="form-control" type="number" name="level" min={1} max={100} value={editForm.level} onChange={handleEditChange} />
+                                        </div>
+                                        <div className="mb-0">
+                                            <label htmlFor="start-date" className="form-label">Start Date</label>
+                                            <input
+                                                type="date"
+                                                id="start-date"
+                                                className="form-control"
+                                                name="startDate"
+                                                value={editForm.startDate}
+                                                onChange={handleEditChange}
+                                            />
+                                        </div>
+
+                                        <div className="mb-0">
+                                            <label htmlFor="end-dat" className="form-label">End Date</label>
+                                            <input
+                                                type="date"
+                                                id="end-date"
+                                                className="form-control"
+                                                name="endDate"
+                                                value={editForm.endDate}
+                                                onChange={handleEditChange}
+                                            />
                                         </div>
                                         <div>
                                             <label htmlFor="edit-property-tenantId" className="form-label">Assign Tenant (Optional)</label>

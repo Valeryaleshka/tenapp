@@ -7,5 +7,7 @@ public class CreatePropertyDto
     public string Address { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public int Level { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     public Guid? TenantId { get; set; }
 }

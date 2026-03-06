@@ -83,6 +83,12 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Level)
                 .HasColumnName("level")
                 .IsRequired();
+            entity.Property(e => e.StartDate)
+                .HasColumnName("start_date")
+                .HasColumnType("date");
+            entity.Property(e => e.EndDate)
+                .HasColumnName("end_date")
+                .HasColumnType("date");
             entity.Property(e => e.CreatedAt)
                 .HasColumnName("created_at")
                 .HasDefaultValueSql("timezone('utc', now())");

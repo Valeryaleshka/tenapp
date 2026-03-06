@@ -16,6 +16,8 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         price: 0,
         level: 1,
         tenantId: null,
+        startDate: '',
+        endDate: ''
     };
 
     const [formData, setFormData] = useState<PropertyUpsertPayload>({
@@ -146,6 +148,29 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                                         onChange={handleTextChange}
                                         min={1}
                                         max={100}
+                                    />
+                                </div>
+                                <div className="mb-0">
+                                    <label htmlFor="start-date" className="form-label">Start Date</label>
+                                    <input
+                                        type="date"
+                                        id="start-date"
+                                        className="form-control"
+                                        name="startDate"
+                                        value={formData.startDate}
+                                        onChange={handleTextChange}
+                                    />
+                                </div>
+
+                                <div className="mb-0">
+                                    <label htmlFor="end-dat" className="form-label">End Date</label>
+                                    <input
+                                        type="date"
+                                        id="end-date"
+                                        className="form-control"
+                                        name="endDate"
+                                        value={formData.endDate}
+                                        onChange={handleTextChange}
                                     />
                                 </div>
                                 <div className="mb-0 mt-3">

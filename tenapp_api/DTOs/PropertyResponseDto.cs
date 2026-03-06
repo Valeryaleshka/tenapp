@@ -10,5 +10,7 @@ public class PropertyResponseDto
     public int Level { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid? TenantId { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     public string? TenantFullName { get; set; }
 }

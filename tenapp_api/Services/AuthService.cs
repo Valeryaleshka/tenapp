@@ -81,6 +81,7 @@ public class AuthService : IAuthService
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
+        await TrySendWelcomeEmailAsync(user);
         await IssueTokensAsync(user, response, request);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
@@ -364,6 +365,23 @@ public class AuthService : IAuthService
         var inputBytes = Encoding.UTF8.GetBytes(value);
         var hashBytes = SHA256.HashData(inputBytes);
         return Convert.ToHexString(hashBytes);
+    }
+
+    private async Task TrySendWelcomeEmailAsync(User user)
+    {
+        var message = new MailgunMessage(
+            To: user.Email,
+            Subject: "Welcome to Tenapp Core",
+            Text: $"Hello {user.FirstName}, welcome to Tenapp Core.");
+
+        try
+        {
+            await _mailgunService.SendSimpleMessageAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", user.Id);
+        }
     }
 }
 

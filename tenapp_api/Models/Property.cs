@@ -11,6 +11,8 @@ public class Property
     public DateTime CreatedAt { get; set; }
     public Guid UserId { get; set; }
     public Guid? TenantId { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     public User User { get; set; } = null!;
     public Tenant? Tenant { get; set; }
 }
