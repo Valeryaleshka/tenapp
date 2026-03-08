@@ -206,7 +206,7 @@ export function PropertyDetailPage() {
                                                 id="start-date"
                                                 className="form-control"
                                                 name="startDate"
-                                                value={editForm.startDate}
+                                                value={editForm.startDate ?? ''}
                                                 onChange={handleEditChange}
                                             />
                                         </div>
@@ -218,7 +218,7 @@ export function PropertyDetailPage() {
                                                 id="end-date"
                                                 className="form-control"
                                                 name="endDate"
-                                                value={editForm.endDate}
+                                                value={editForm.endDate ?? ''}
                                                 onChange={handleEditChange}
                                             />
                                         </div>

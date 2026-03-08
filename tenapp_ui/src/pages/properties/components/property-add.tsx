@@ -157,7 +157,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                                         id="start-date"
                                         className="form-control"
                                         name="startDate"
-                                        value={formData.startDate}
+                                        value={formData.startDate ?? ''}
                                         onChange={handleTextChange}
                                     />
                                 </div>
@@ -169,7 +169,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                                         id="end-date"
                                         className="form-control"
                                         name="endDate"
-                                        value={formData.endDate}
+                                        value={formData.endDate ?? ''}
                                         onChange={handleTextChange}
                                     />
                                 </div>
