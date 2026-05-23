@@ -11,7 +11,6 @@ export function LoginPage() {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        login: '',
         email: '',
         password: '',
     });
@@ -24,12 +23,11 @@ export function LoginPage() {
         setError(null);
         setFormErrors({});
 
-        const trimmedLogin = formData.login.trim();
         const trimmedEmail = formData.email.trim();
         const nextErrors: LoginFormErrors = {};
 
-        if (!trimmedLogin && !trimmedEmail) {
-            setError('Enter login or email.');
+        if (!trimmedEmail) {
+            setError('Enter email.');
             return;
         }
 
@@ -51,8 +49,7 @@ export function LoginPage() {
         try {
             await login({
                 password: formData.password,
-                login: trimmedLogin || undefined,
-                email: trimmedEmail || undefined,
+                email: trimmedEmail,
             });
             navigate('/properties', { replace: true });
         } catch {
@@ -68,21 +65,6 @@ export function LoginPage() {
                 <h1 className="h5 mb-3">Login</h1>
                 {error && <div className="alert alert-danger">{error}</div>}
                 <form onSubmit={handleSubmit} noValidate>
-                    <div className="mb-3">
-                        <label htmlFor="login" className="form-label">Login</label>
-                        <input
-                            id="login"
-                            className="form-control"
-                            type="text"
-                            value={formData.login}
-                            onChange={(event) => {
-                                setFormData((prev) => ({ ...prev, login: event.target.value }));
-                                setError(null);
-                            }}
-                            placeholder="Enter login"
-                        />
-                    </div>
-
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">Email</label>
                         <input

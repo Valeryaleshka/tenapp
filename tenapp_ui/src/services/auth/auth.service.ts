@@ -10,14 +10,11 @@ export interface User {
 }
 
 export interface LoginPayload {
-    login?: string;
-    email?: string;
+    email: string;
     password: string;
 }
 
 export interface RegisterPayload extends LoginPayload {
-    login: string;
-    email: string;
     firstName: string;
     secondName: string;
 }

@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { AppPagination } from '../../../components/app-pagination.tsx';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { LoadingWrapper } from '../../../components/loading-wrapper.tsx';
 import {
     type Property,
@@ -14,87 +13,176 @@ import {
 } from '../../../services/sort/sort.service.ts';
 
 export function PropertyTable() {
-    const [properties, setProperties] = useState<Property[]>([]);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 30;
+
+    const [propertiesList, setPropertiesList] = useState<Property[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+
     const [totalCount, setTotalCount] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
+
     const [sortBy, setSortBy] = useState<PropertySortField>('name');
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
+
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    const [searchField, setSearchField] = useState('');
+    const [debouncedSearchField, setDebouncedSearchField] = useState('');
+
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    const isRequestInFlightRef = useRef(false);
+
+    const visibleTableData = propertiesList.filter((item) => {
+        return item.name.toLowerCase().includes(debouncedSearchField.trim().toLowerCase());
+    });
 
     useEffect(() => {
         const controller = new AbortController();
         let isCancelled = false;
 
-        void propertyService.getAll(page, 20, sortBy, sortDir, controller.signal).then((response) => {
-            if (isCancelled) {
-                return;
-            }
+        const loadProperties = async () => {
+            setIsLoading(currentPage === 1);
+            setIsLoadingMore(currentPage > 1);
+            isRequestInFlightRef.current = true;
 
-            setProperties(response.items);
-            setTotalPages(Math.max(1, response.totalPages));
-            setTotalCount(response.totalCount);
-        }).catch((error) => {
-            if (!isCancelled) {
-                console.error('Failed to load properties:', error);
+            try {
+                const response = await propertyService.getAll(currentPage, pageSize, sortBy, sortDir, controller.signal);
+                if (isCancelled) {
+                    return;
+                }
+
+                setPropertiesList((currentProperties) => {
+                    if (currentPage === 1) {
+                        return response.items;
+                    }
+
+                    return [...currentProperties, ...response.items];
+                });
+                setTotalCount(response.totalCount);
+                setTotalPages(response.totalPages);
+            } catch (error) {
+                if (!isCancelled) {
+                    console.error('Failed to load propertiesList:', error);
+                }
+            } finally {
+                if (!isCancelled) {
+                    setIsLoading(false);
+                    setIsLoadingMore(false);
+                }
+
+                isRequestInFlightRef.current = false;
             }
-        }).finally(() => {
-            if (!isCancelled) {
-                setIsLoading(false);
-            }
-        });
+        };
+
+        void loadProperties();
 
         return () => {
             controller.abort();
             isCancelled = true;
         };
-    }, [page, sortBy, sortDir]);
+    }, [currentPage, pageSize, sortBy, sortDir]);
+
+    useEffect(() => {
+        const target = loadMoreRef.current;
+
+
+
+        if (!target || isLoading || isLoadingMore || currentPage >= totalPages) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                console.log(entries[0])
+                if (entries[0]?.isIntersecting && !isRequestInFlightRef.current) {
+                    setCurrentPage((currentPage) => currentPage + 1);
+                }
+            },
+            {
+                rootMargin: '200px 0px',
+            },
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [isLoading, isLoadingMore, currentPage, totalPages]);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setDebouncedSearchField(searchField);
+        }, 500);
+
+        return () => {
+            clearTimeout(timeout);
+        };
+    }, [searchField]);
 
     const applySort = (field: PropertySortField) => {
         const nextDirection = getNextSortDirection(sortBy, field, sortDir);
         setIsLoading(true);
+        setPropertiesList([]);
         setSortBy(field);
         setSortDir(nextDirection);
-        setPage(1);
-    };
-
-    const handlePageChange = (nextPage: number) => {
-        setIsLoading(true);
-        setPage(nextPage);
+        setCurrentPage(1);
     };
 
     return (
-        <>
-            <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
-                <select
-                    className="form-select"
-                    aria-label="Sort properties by field"
-                    value={sortBy}
-                    onChange={(event) => {
-                        setIsLoading(true);
-                        setSortBy(event.target.value as PropertySortField);
-                        setPage(1);
-                    }}
-                    style={{ width: '170px' }}
-                >
-                    <option value="name">Sort: Name</option>
-                    <option value="type">Sort: Type</option>
-                    <option value="level">Sort: Level</option>
-                </select>
-                <select
-                    className="form-select"
-                    aria-label="Sort properties direction"
-                    value={sortDir}
-                    onChange={(event) => {
-                        setIsLoading(true);
-                        setSortDir(event.target.value as SortDirection);
-                        setPage(1);
-                    }}
-                    style={{ width: '130px' }}
-                >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                </select>
+        <Fragment>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <div>
+
+                    <div className="input-group mb-3">
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by name"
+                            value={searchField}
+                            onChange={(event) => {
+                                setSearchField(event.target.value);
+                            }}
+                        />
+                    </div>
+
+                </div>
+                <div className="d-flex justify-content-between align-items-center gap-2">
+                    <select
+                        className="form-select"
+                        aria-label="Sort properties by field"
+                        value={sortBy}
+                        onChange={(event) => {
+                            setIsLoading(true);
+                            setPropertiesList([]);
+                            setSortBy(event.target.value as PropertySortField);
+                            setCurrentPage(1);
+                        }}
+                        style={{ width: '170px' }}
+                    >
+                        <option value="name">Sort: Name</option>
+                        <option value="type">Sort: Type</option>
+                        <option value="level">Sort: Level</option>
+                    </select>
+                    <select
+                        className="form-select"
+                        aria-label="Sort properties direction"
+                        value={sortDir}
+                        onChange={(event) => {
+                            setIsLoading(true);
+                            setPropertiesList([]);
+                            setSortDir(event.target.value as SortDirection);
+                            setCurrentPage(1);
+                        }}
+                        style={{ width: '130px' }}
+                    >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+
+                </div>
+
             </div>
 
             <LoadingWrapper isLoading={isLoading}>
@@ -147,8 +235,8 @@ export function PropertyTable() {
                         </tr>
                     </thead>
                     <tbody>
-                        {properties.map((property) => (
-                            <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
+                        {visibleTableData.map((property, index) => {
+                            return <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
                                 <td>{property.name}</td>
                                 <td>{property.address}</td>
                                 <td className="d-none d-md-table-cell">{property.type}</td>
@@ -161,15 +249,20 @@ export function PropertyTable() {
                                     </Link>
                                 </td>
                             </tr>
-                        ))}
+                        }
+
+
+                        )}
                     </tbody>
                 </table>
+                <div ref={loadMoreRef}></div>
             </LoadingWrapper>
-
             <div className="d-flex justify-content-between align-items-center">
-                <small className="text-muted">Total: {totalCount}</small>
-                <AppPagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+                <small className="text-muted">
+                    Showing {visibleTableData.length} of {totalCount}
+                </small>
+                {isLoadingMore && <small className="text-muted">Loading more...</small>}
             </div>
-        </>
+        </Fragment>
     );
 }

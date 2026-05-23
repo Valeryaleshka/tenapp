@@ -1,79 +1,59 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mail;
-using System.Security.Cryptography;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using TenappCore.Data;
 using TenappCore.DTOs;
 using TenappCore.Models;
 using TenappCore.Services.Mailgun;
+using TenappApi.Services;
 
 namespace TenappCore.Services;
 
 public class AuthService : IAuthService
 {
-    private const string AccessCookieName = "accessToken";
-    private const string RefreshCookieName = "refreshToken";
-    private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
     private readonly AppDbContext _dbContext;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IMailgunService _mailgunService;
+    private readonly IEmailQueue _emailQueue;
+    private readonly ICookieService _cookieService;
     private readonly ILogger<AuthService> _logger;
     private readonly string _passwordResetBaseUrl;
-    private readonly string _jwtIssuer;
-    private readonly string _jwtAudience;
-    private readonly SymmetricSecurityKey _signingKey;
 
     public AuthService(
         AppDbContext dbContext,
         IConfiguration configuration,
         IPasswordHasher<User> passwordHasher,
         IMailgunService mailgunService,
+        IEmailQueue emailQueue,
+        ICookieService cookieService,
         ILogger<AuthService> logger)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
         _mailgunService = mailgunService;
+        _emailQueue = emailQueue;
+        _cookieService = cookieService;
         _logger = logger;
         _passwordResetBaseUrl = configuration["Auth:PasswordResetBaseUrl"] ?? "http://localhost:3001/reset-password";
-        _jwtIssuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing");
-        _jwtAudience = configuration["Jwt:Audience"] ?? throw new InvalidOperationException("Jwt:Audience is missing");
-        var jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
-        _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
     }
 
     public async Task<AuthResult<UserResponseDto>> RegisterAsync(RegisterUserDto dto, HttpRequest request, HttpResponse response)
-    {
-        if (string.IsNullOrWhiteSpace(dto.Login) ||
-            string.IsNullOrWhiteSpace(dto.Email) ||
-            string.IsNullOrWhiteSpace(dto.Password) ||
-            string.IsNullOrWhiteSpace(dto.FirstName) ||
-            string.IsNullOrWhiteSpace(dto.SecondName))
+    {        
+        var email = NormalizeService.NormalizeEmail(dto.Email);
+
+        var exists = await _dbContext.Users.AnyAsync(u => u.Email == email);
+
+        if (exists)
         {
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "login, email, password, firstName and secondName are required");
+          return AuthResult<UserResponseDto>.Fail(StatusCodes.Status409Conflict, "Email already exists");   
         }
 
-        var login = dto.Login?.Trim().ToLowerInvariant() ?? string.Empty;
-        var email = NormalizeEmail(dto.Email);
-        if (!IsValidEmail(email))
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "Invalid email format");
-        if (dto.Password.Length < 6)
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "Password must be at least 6 characters long");
-
-        var exists = await _dbContext.Users.AnyAsync(u => u.Login == login || u.Email == email);
-        if (exists)
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status409Conflict, "Login or email already exists");
-
-        var user = new User
-        {
-            Login = login,
+        var user = new User {
             Email = email,
-            FirstName = dto.FirstName.Trim(),
-            SecondName = dto.SecondName.Trim(),
+            FirstName = NormalizeService.NormalizeText(dto.FirstName),
+            SecondName = NormalizeService.NormalizeText(dto.SecondName),
             PasswordHash = string.Empty
         };
         user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
@@ -81,24 +61,21 @@ public class AuthService : IAuthService
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        await TrySendWelcomeEmailAsync(user);
+        QueueWelcomeEmail(user);
         await IssueTokensAsync(user, response, request);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
     public async Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpRequest request, HttpResponse response)
     {
-        if (string.IsNullOrWhiteSpace(dto.Password) ||
-            (string.IsNullOrWhiteSpace(dto.Login) && string.IsNullOrWhiteSpace(dto.Email)))
+        if (string.IsNullOrWhiteSpace(dto.Password) || string.IsNullOrWhiteSpace(dto.Email))
         {
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "password and either login or email are required");
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "password and email are required");
         }
 
-        var login = dto.Login?.Trim().ToLowerInvariant() ?? string.Empty;
-        var email = NormalizeEmail(dto.Email);
-        var user = !string.IsNullOrWhiteSpace(email)
-            ? await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email)
-            : await _dbContext.Users.FirstOrDefaultAsync(u => u.Login == login);
+        var email = NormalizeService.NormalizeEmail(dto.Email);
+        var user =  await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+
         if (user == null)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid credentials");
 
@@ -112,16 +89,19 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult<UserResponseDto>> RefreshAsync(HttpRequest request, HttpResponse response)
     {
-        if (!request.Cookies.TryGetValue(RefreshCookieName, out var refreshToken) || string.IsNullOrWhiteSpace(refreshToken))
+        var refreshToken = _cookieService.GetRefreshToken(request);
+        if (refreshToken == null)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Refresh token is missing");
 
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
-        if (user == null)
-            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid refresh token");
-
-        var principal = ValidateToken(refreshToken, expectedTokenType: "refresh");
+            
+        var principal = _cookieService.ValidateRefreshToken(refreshToken);
         if (principal == null)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Expired or invalid refresh token");
+
+        var refreshTokenHash = _cookieService.ComputeTokenHash(refreshToken);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshTokenHash);
+        if (user == null)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid refresh token");
 
         if (!TryGetUserId(principal, out var subjectUserId) || subjectUserId != user.Id)
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Refresh token subject mismatch");
@@ -135,21 +115,20 @@ public class AuthService : IAuthService
         if (string.IsNullOrWhiteSpace(dto.Email))
             return;
 
-        var email = NormalizeEmail(dto.Email);
-        if (!IsValidEmail(email))
-            return;
+        var email = NormalizeService.NormalizeEmail(dto.Email);
 
         var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
             return;
 
-        var rawToken = GeneratePasswordResetToken();
-        user.PasswordResetTokenHash = ComputeSha256(rawToken);
-        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.Add(PasswordResetTokenLifetime);
+        var resetToken = _cookieService.GeneratePasswordResetToken();
+        user.PasswordResetTokenHash = resetToken.Hash;
+        user.PasswordResetTokenExpiresAt = resetToken.ExpiresAt;
         await _dbContext.SaveChangesAsync();
 
-        var encodedToken = Uri.EscapeDataString(rawToken);
+        var encodedToken = Uri.EscapeDataString(resetToken.RawToken);
         var resetUrl = $"{_passwordResetBaseUrl}?token={encodedToken}";
+
         var message = new MailgunMessage(
             To: user.Email,
             Subject: "Tenapp Core password reset",
@@ -167,17 +146,9 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult<string>> ResetPasswordAsync(ResetPasswordDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.NewPassword))
-            return AuthResult<string>.Fail(StatusCodes.Status400BadRequest, "email, token and newPassword are required");
+        var email = NormalizeService.NormalizeEmail(dto.Email);
 
-        var email = NormalizeEmail(dto.Email);
-        if (!IsValidEmail(email))
-            return AuthResult<string>.Fail(StatusCodes.Status400BadRequest, "Invalid email format");
-
-        if (dto.NewPassword.Length < 6)
-            return AuthResult<string>.Fail(StatusCodes.Status400BadRequest, "Password must be at least 6 characters long");
-
-        var tokenHash = ComputeSha256(dto.Token.Trim());
+        var tokenHash = _cookieService.ComputeTokenHash(dto.Token.Trim());
         var now = DateTime.UtcNow;
         var user = await _dbContext.Users.FirstOrDefaultAsync(u =>
             u.Email == email &&
@@ -199,9 +170,11 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync(HttpRequest request, HttpResponse response)
     {
-        if (request.Cookies.TryGetValue(RefreshCookieName, out var refreshToken) && !string.IsNullOrWhiteSpace(refreshToken))
+        var refreshToken = _cookieService.GetRefreshToken(request);
+        if (refreshToken != null)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+            var refreshTokenHash = _cookieService.ComputeTokenHash(refreshToken);
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshTokenHash);
             if (user != null)
             {
                 user.RefreshToken = null;
@@ -209,7 +182,7 @@ public class AuthService : IAuthService
             }
         }
 
-        DeleteAuthCookies(response, request);
+        _cookieService.DeleteAuthCookies(response, request);
     }
 
     public async Task<AuthResult<UserResponseDto>> MeAsync(ClaimsPrincipal principal)
@@ -226,99 +199,19 @@ public class AuthService : IAuthService
 
     private async Task IssueTokensAsync(User user, HttpResponse response, HttpRequest? httpRequest)
     {
-        var accessToken = GenerateToken(user.Id, tokenType: "access", expiresIn: TimeSpan.FromMinutes(30));
-        var refreshToken = GenerateToken(user.Id, tokenType: "refresh", expiresIn: TimeSpan.FromDays(2));
+        var tokens = _cookieService.GenerateAuthTokens(user.Id);
 
-        user.RefreshToken = refreshToken;
+        user.RefreshToken = _cookieService.ComputeTokenHash(tokens.RefreshToken);
         await _dbContext.SaveChangesAsync();
 
-        AppendCookie(response, httpRequest, AccessCookieName, accessToken, TimeSpan.FromMinutes(30));
-        AppendCookie(response, httpRequest, RefreshCookieName, refreshToken, TimeSpan.FromDays(2));
-    }
-
-    private string GenerateToken(Guid userId, string tokenType, TimeSpan expiresIn)
-    {
-        var credentials = new SigningCredentials(_signingKey, SecurityAlgorithms.HmacSha256);
-        var now = DateTime.UtcNow;
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim("token_type", tokenType)
-        };
-
-        var token = new JwtSecurityToken(
-            issuer: _jwtIssuer,
-            audience: _jwtAudience,
-            claims: claims,
-            notBefore: now,
-            expires: now.Add(expiresIn),
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private ClaimsPrincipal? ValidateToken(string token, string expectedTokenType)
-    {
-        try
-        {
-            var validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidateLifetime = true,
-                ValidIssuer = _jwtIssuer,
-                ValidAudience = _jwtAudience,
-                IssuerSigningKey = _signingKey,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            var principal = new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out _);
-            var tokenType = principal.FindFirstValue("token_type");
-
-            return string.Equals(tokenType, expectedTokenType, StringComparison.Ordinal) ? principal : null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to validate token");
-            return null;
-        }
+        _cookieService.AppendAuthCookies(response, httpRequest, tokens);
     }
 
     private static bool TryGetUserId(ClaimsPrincipal principal, out Guid userId)
     {
-        var subject =
-            principal.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-            principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var subject = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
         return Guid.TryParse(subject, out userId);
-    }
-
-    private static void AppendCookie(HttpResponse response, HttpRequest? request, string cookieName, string value, TimeSpan expiresIn)
-    {
-        response.Cookies.Append(cookieName, value, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = request?.IsHttps ?? false,
-            SameSite = SameSiteMode.Lax,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.Add(expiresIn)
-        });
-    }
-
-    private static void DeleteAuthCookies(HttpResponse response, HttpRequest request)
-    {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = request.IsHttps,
-            SameSite = SameSiteMode.Lax,
-            Path = "/"
-        };
-
-        response.Cookies.Delete(AccessCookieName, cookieOptions);
-        response.Cookies.Delete(RefreshCookieName, cookieOptions);
     }
 
     private static UserResponseDto ToUserResponse(User user)
@@ -326,62 +219,21 @@ public class AuthService : IAuthService
         return new UserResponseDto
         {
             Id = user.Id,
-            Login = user.Login,
             Email = user.Email,
             FirstName = user.FirstName,
             SecondName = user.SecondName
         };
     }
 
-    private static string NormalizeEmail(string? email)
-    {
-        return email?.Trim().ToLowerInvariant() ?? string.Empty;
-    }
 
-    private static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-            return false;
-
-        try
-        {
-            _ = new MailAddress(email);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static string GeneratePasswordResetToken()
-    {
-        var bytes = RandomNumberGenerator.GetBytes(32);
-        return Base64UrlEncoder.Encode(bytes);
-    }
-
-    private static string ComputeSha256(string value)
-    {
-        var inputBytes = Encoding.UTF8.GetBytes(value);
-        var hashBytes = SHA256.HashData(inputBytes);
-        return Convert.ToHexString(hashBytes);
-    }
-
-    private async Task TrySendWelcomeEmailAsync(User user)
+    private void QueueWelcomeEmail(User user)
     {
         var message = new MailgunMessage(
             To: user.Email,
             Subject: "Welcome to Tenapp Core",
             Text: $"Hello {user.FirstName}, welcome to Tenapp Core.");
 
-        try
-        {
-            await _mailgunService.SendSimpleMessageAsync(message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send welcome email for user {UserId}", user.Id);
-        }
+        _emailQueue.Enqueue(message);
     }
 }
 

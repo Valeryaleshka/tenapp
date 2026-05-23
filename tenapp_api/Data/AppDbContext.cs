@@ -22,12 +22,6 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasColumnName("id")
                 .HasDefaultValueSql("gen_random_uuid()");
-            entity.Property(e => e.Login)
-                .HasColumnName("login")
-                .IsRequired()
-                .HasMaxLength(100);
-            entity.HasIndex(e => e.Login)
-                .IsUnique();
             entity.Property(e => e.Email)
                 .HasColumnName("email")
                 .IsRequired()

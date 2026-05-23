@@ -6,7 +6,6 @@ export function RegisterPage() {
     const { register } = useAuth();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        login: '',
         email: '',
         password: '',
         firstName: '',
@@ -60,19 +59,6 @@ export function RegisterPage() {
                             value={formData.secondName}
                             onChange={(event) => setFormData((prev) => ({ ...prev, secondName: event.target.value }))}
                             placeholder="Enter second name"
-                        />
-                    </div>
-
-                    <div className="mb-3">
-                        <label htmlFor="registerLogin" className="form-label">Login</label>
-                        <input
-                            id="registerLogin"
-                            className="form-control"
-                            type="text"
-                            required
-                            value={formData.login}
-                            onChange={(event) => setFormData((prev) => ({ ...prev, login: event.target.value }))}
-                            placeholder="Choose login"
                         />
                     </div>
 

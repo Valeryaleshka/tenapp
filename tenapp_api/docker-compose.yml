@@ -1,11 +1,49 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tenapp-core-postgres
+    environment:
+      POSTGRES_DB: tenapp_core_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tenapp_core_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: tenapp-core-api
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: Host=tenapp-db.cd08g2oc4b37.us-east-2.rds.amazonaws.com;Port=5432;Database=tenapp_db;Username=postgres;Password=postgrespass
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=tenapp_core_db;Username=postgres;Password=postgres123
     ports:
       - "8080:8080"
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: tenapp-core-pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tenapp-core.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+volumes:
+  postgres-data:
+  pgadmin-data:

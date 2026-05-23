@@ -1,9 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TenappCore.DTOs;
 
 public class LoginUserDto
 {
-    public string Login { get; set; } = string.Empty;
+    [Required]
+    [EmailAddress]
     public string Email { get; set; } = string.Empty;
+    [Required]
     public string Password { get; set; } = string.Empty;
 }
 

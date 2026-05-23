@@ -28,7 +28,7 @@ This mode runs database in Docker and API locally on `http://localhost:3001` (ma
 1. Start infra:
 
 ```powershell
-docker compose up
+docker compose up -d postgres
 ```
 
 2. Apply migrations:
@@ -88,10 +88,10 @@ sudo systemctl reload nginx
 
 ## Useful Commands
 
-Start only database tools:
+Start only database:
 
 ```powershell
-docker compose up -d postgres pgadmin
+docker compose up -d postgres
 ```
 
 Start everything (API + DB + pgAdmin):
