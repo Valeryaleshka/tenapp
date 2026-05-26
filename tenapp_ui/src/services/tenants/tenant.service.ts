@@ -22,6 +22,12 @@ export interface TenantSelect {
     name: string;
 }
 
+export interface TenantSelectQuery {
+    search?: string;
+    limit?: number;
+    selectedTenantId?: string | null;
+}
+
 export interface CreateTenantPayload {
     firstName: string;
     lastName: string;
@@ -62,8 +68,15 @@ export const tenantService = {
         return response.data;
     },
 
-    getForSelect: async (): Promise<TenantSelect[]> => {
-        const response = await apiClient.get('/tenants/select');
+    getForSelect: async (query: TenantSelectQuery = {}, signal?: AbortSignal): Promise<TenantSelect[]> => {
+        const response = await apiClient.get('/tenants/select', {
+            signal,
+            params: {
+                search: query.search || undefined,
+                limit: query.limit,
+                selectedTenantId: query.selectedTenantId || undefined,
+            },
+        });
         return response.data;
     },
 

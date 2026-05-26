@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TenappCore.Configuration;
 using TenappCore.Data;
+using TenappCore.Infrastructure.Logging;
 using TenappCore.Models;
 using TenappCore.Services;
 using TenappCore.Services.Mailgun;
@@ -14,6 +15,7 @@ using TenappCore.Services.Mailgun;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.Logging.AddFile(builder.Configuration.GetSection("Logging:File"), builder.Environment.ContentRootPath);
 
 // Add services
 
@@ -36,6 +38,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.Configure<MailgunOptions>(builder.Configuration.GetSection(MailgunOptions.SectionName));
 builder.Services.AddScoped<IMailgunService, MailgunService>();
 builder.Services.AddSingleton<EmailQueue>();

@@ -1,6 +1,6 @@
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { propertyService, type PropertyUpsertPayload } from '../../../services/properties/property.service.ts';
-import { tenantService, type TenantSelect } from '../../../services/tenants/tenant.service.ts';
+import { TenantAssignmentSelect } from './tenant-assignment-select.tsx';
 
 interface AddPropertyProps {
     show: boolean;
@@ -24,17 +24,6 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
         ...initialFormData,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [tenants, setTenants] = useState<TenantSelect[]>([]);
-
-    useEffect(() => {
-        if (!show) {
-            return;
-        }
-
-        void tenantService.getForSelect().then(setTenants).catch((error) => {
-            console.error('Failed to load tenants:', error);
-        });
-    }, [show]);
 
     const handleTextChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -176,28 +165,11 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                                 <div className="mb-0 mt-3">
                                     <label htmlFor="property-tenantId" className="form-label">Assign Tenant (Optional)</label>
                                     <div className="d-flex gap-2">
-                                        <select
+                                        <TenantAssignmentSelect
                                             id="property-tenantId"
-                                            className="form-select"
-                                            name="tenantId"
                                             value={formData.tenantId ?? ''}
-                                            onChange={handleTextChange}
-                                        >
-                                            <option value="">No tenant</option>
-                                            {tenants.map((tenant) => (
-                                                <option key={tenant.id} value={tenant.id}>
-                                                    {tenant.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            className="btn btn-outline-secondary"
-                                            type="button"
-                                            onClick={() => setFormData((prev) => ({ ...prev, tenantId: null }))}
-                                            disabled={!formData.tenantId}
-                                        >
-                                            Clear
-                                        </button>
+                                            onChange={(tenantId) => setFormData((prev) => ({ ...prev, tenantId }))}
+                                        />
                                     </div>
                                 </div>
                             </form>

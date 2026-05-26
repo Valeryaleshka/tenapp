@@ -235,7 +235,7 @@ export function PropertyTable() {
                         </tr>
                     </thead>
                     <tbody>
-                        {visibleTableData.map((property, index) => {
+                        {visibleTableData.map((property) => {
                             return <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
                                 <td>{property.name}</td>
                                 <td>{property.address}</td>

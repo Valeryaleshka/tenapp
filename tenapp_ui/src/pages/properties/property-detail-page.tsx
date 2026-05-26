@@ -1,12 +1,11 @@
 import { type ChangeEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { propertyService, type Property, type PropertyUpsertPayload } from '../../services/properties/property.service.ts';
-import { tenantService, type TenantSelect } from '../../services/tenants/tenant.service.ts';
+import { TenantAssignmentSelect } from './components/tenant-assignment-select.tsx';
 
 export function PropertyDetailPage() {
     const { id } = useParams<{ id: string }>();
     const [property, setProperty] = useState<Property | null>(null);
-    const [tenants, setTenants] = useState<TenantSelect[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -30,12 +29,8 @@ export function PropertyDetailPage() {
         const load = async () => {
             try {
                 setIsLoading(true);
-                const [propertyData, tenantsData] = await Promise.all([
-                    propertyService.getById(id),
-                    tenantService.getForSelect(),
-                ]);
+                const propertyData = await propertyService.getById(id);
                 setProperty(propertyData);
-                setTenants(tenantsData);
                 setEditForm({
                     name: propertyData.name,
                     type: propertyData.type,
@@ -225,20 +220,11 @@ export function PropertyDetailPage() {
                                         <div>
                                             <label htmlFor="edit-property-tenantId" className="form-label">Assign Tenant (Optional)</label>
                                             <div className="d-flex gap-2">
-                                                <select id="edit-property-tenantId" className="form-select" name="tenantId" value={editForm.tenantId ?? ''} onChange={handleEditChange}>
-                                                    <option value="">No tenant</option>
-                                                    {tenants.map((tenant) => (
-                                                        <option key={tenant.id} value={tenant.id}>{tenant.name}</option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-outline-secondary"
-                                                    onClick={() => setEditForm((prev) => ({ ...prev, tenantId: null }))}
-                                                    disabled={!editForm.tenantId}
-                                                >
-                                                    Clear
-                                                </button>
+                                                <TenantAssignmentSelect
+                                                    id="edit-property-tenantId"
+                                                    value={editForm.tenantId ?? ''}
+                                                    onChange={(tenantId) => setEditForm((prev) => ({ ...prev, tenantId }))}
+                                                />
                                             </div>
                                         </div>
                                     </form>

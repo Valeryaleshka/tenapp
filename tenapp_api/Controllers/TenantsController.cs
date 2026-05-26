@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
@@ -26,8 +27,8 @@ public class TenantsController : ControllerBase
     public async Task<ActionResult<PagedResponseDto<TenantResponseDto>>> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
-        [FromQuery] string sortBy = "firstName",
-        [FromQuery] string sortDir = "asc")
+        [FromQuery] TenantSortBy sortBy = TenantSortBy.FirstName,
+        [FromQuery] SortDirection sortDir = SortDirection.Asc)
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
@@ -40,31 +41,40 @@ public class TenantsController : ControllerBase
             .Include(t => t.Properties)
             .Where(t => t.UserId == userId);
 
-        var descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
-        var sortedQuery = sortBy.ToLowerInvariant() switch
+        if (!Enum.IsDefined(sortBy))
+            return BadRequest("sortBy must be one of: id, firstName, lastName, phoneNumber, email, createdAt, userId");
+
+        if (!Enum.IsDefined(sortDir))
+            return BadRequest("sortDir must be 'asc' or 'desc'");
+
+        var descending = sortDir == SortDirection.Desc;
+
+        Expression<Func<Tenant, object>> sortExpression = sortBy switch
         {
-            "lastname" => descending
-                ? filteredQuery.OrderByDescending(t => t.LastName).ThenBy(t => t.Id)
-                : filteredQuery.OrderBy(t => t.LastName).ThenBy(t => t.Id),
-            "firstname" => descending
-                ? filteredQuery.OrderByDescending(t => t.FirstName).ThenBy(t => t.Id)
-                : filteredQuery.OrderBy(t => t.FirstName).ThenBy(t => t.Id),
-            _ => descending
-                ? filteredQuery.OrderByDescending(t => t.FirstName).ThenBy(t => t.Id)
-                : filteredQuery.OrderBy(t => t.FirstName).ThenBy(t => t.Id)
+            TenantSortBy.Id => t => t.Id,
+            TenantSortBy.LastName => t => t.LastName,
+            TenantSortBy.FirstName => t => t.FirstName,
+            TenantSortBy.PhoneNumber => t => t.PhoneNumber,
+            TenantSortBy.Email => t => t.Email,
+            TenantSortBy.CreatedAt => t => t.CreatedAt,
+            TenantSortBy.UserId => t => t.UserId,
+            _ => throw new ArgumentOutOfRangeException(nameof(sortBy), sortBy, null)
         };
+
+        var sortedQuery = descending
+            ? filteredQuery.OrderByDescending(sortExpression)
+            : filteredQuery.OrderBy(sortExpression);
+
+        sortedQuery = sortedQuery.ThenBy(t => t.Id);
 
         var totalCount = await filteredQuery.CountAsync();
 
-        var tenantEntities = await sortedQuery
+        var tenants = await sortedQuery
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(t => ToResponseDto(t))
             .ToListAsync();
-
-        var tenants = tenantEntities
-            .Select(ToResponseDto)
-            .ToList();
-
+    
         return Ok(new PagedResponseDto<TenantResponseDto>
         {
             Items = tenants,
@@ -93,22 +103,56 @@ public class TenantsController : ControllerBase
     }
 
     [HttpGet("select")]
-    public async Task<ActionResult<IEnumerable<TenantSelectDto>>> GetForSelect()
+    public async Task<ActionResult<IEnumerable<TenantSelectDto>>> GetForSelect(
+        [FromQuery] string? search = null,
+        [FromQuery] int limit = 50,
+        [FromQuery] Guid? selectedTenantId = null)
     {
         if (!TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
-        var tenants = await _dbContext.Tenants
+        limit = Math.Clamp(limit, 1, 100);
+
+        var query = _dbContext.Tenants
             .AsNoTracking()
-            .Where(t => t.UserId == userId)
+            .Where(t => t.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var pattern = $"%{EscapeLikePattern(search.Trim())}%";
+            query = query.Where(t =>
+                EF.Functions.ILike(t.FirstName, pattern) ||
+                EF.Functions.ILike(t.LastName, pattern) ||
+                EF.Functions.ILike(t.FirstName + " " + t.LastName, pattern) ||
+                EF.Functions.ILike(t.Email, pattern));
+        }
+
+        var tenants = await query
             .OrderBy(t => t.FirstName)
             .ThenBy(t => t.LastName)
+            .Take(limit)
             .Select(t => new TenantSelectDto
             {
                 Id = t.Id,
                 Name = t.FirstName + " " + t.LastName
             })
             .ToListAsync();
+
+        if (selectedTenantId.HasValue && tenants.All(t => t.Id != selectedTenantId.Value))
+        {
+            var selectedTenant = await _dbContext.Tenants
+                .AsNoTracking()
+                .Where(t => t.UserId == userId && t.Id == selectedTenantId.Value)
+                .Select(t => new TenantSelectDto
+                {
+                    Id = t.Id,
+                    Name = t.FirstName + " " + t.LastName
+                })
+                .FirstOrDefaultAsync();
+
+            if (selectedTenant != null)
+                tenants.Insert(0, selectedTenant);
+        }
 
         return Ok(tenants);
     }
@@ -227,6 +271,14 @@ public class TenantsController : ControllerBase
         {
             return false;
         }
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value
+            .Replace(@"\", @"\\")
+            .Replace("%", @"\%")
+            .Replace("_", @"\_");
     }
 
     private static TenantResponseDto ToResponseDto(Tenant tenant)

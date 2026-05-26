@@ -32,6 +32,7 @@ public sealed class EmailQueue : BackgroundService, IEmailQueue
                 var mailgunService = scope.ServiceProvider.GetRequiredService<IMailgunService>();
 
                 await mailgunService.SendSimpleMessageAsync(message, stoppingToken);
+                _logger.LogInformation("Successfully sent email message to {Recipient}", message.To);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

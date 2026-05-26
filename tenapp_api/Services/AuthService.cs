@@ -60,6 +60,7 @@ public class AuthService : IAuthService
 
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("New user registered with email {Email}", user.Email);
 
         QueueWelcomeEmail(user);
         await IssueTokensAsync(user, response, request);
@@ -84,6 +85,7 @@ public class AuthService : IAuthService
             return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid credentials");
 
         await IssueTokensAsync(user, response, request);
+        _logger.LogInformation("User logged in with email {Email}", user.Email);
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
