@@ -48,10 +48,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+    public async Task<ActionResult<UserResponseDto>> ResetPassword(ResetPasswordDto dto)
     {
         var result = await _authService.ResetPasswordAsync(dto);
-        return ToMessageActionResult(result);
+        return ToActionResult(result);
     }
 
     [HttpPost("logout")]
@@ -78,20 +78,6 @@ public class AuthController : ControllerBase
     }
 
     private ActionResult<UserResponseDto> ToActionResult(AuthResult<UserResponseDto> result)
-    {
-        if (result.Success)
-            return Ok(result.Data);
-
-        return result.StatusCode switch
-        {
-            StatusCodes.Status400BadRequest => BadRequest(result.Error),
-            StatusCodes.Status401Unauthorized => Unauthorized(result.Error),
-            StatusCodes.Status409Conflict => Conflict(result.Error),
-            _ => StatusCode(result.StatusCode, result.Error)
-        };
-    }
-
-    private IActionResult ToMessageActionResult(AuthResult<string> result)
     {
         if (result.Success)
             return Ok(result.Data);

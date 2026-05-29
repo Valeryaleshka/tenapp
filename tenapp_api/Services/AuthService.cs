@@ -146,7 +146,7 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<AuthResult<string>> ResetPasswordAsync(ResetPasswordDto dto)
+    public async Task<AuthResult<UserResponseDto>> ResetPasswordAsync(ResetPasswordDto dto)
     {
         var email = NormalizeService.NormalizeEmail(dto.Email);
 
@@ -159,7 +159,7 @@ public class AuthService : IAuthService
             u.PasswordResetTokenExpiresAt > now);
 
         if (user == null)
-            return AuthResult<string>.Fail(StatusCodes.Status400BadRequest, "Invalid or expired reset token");
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "Invalid or expired reset token");
 
         user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
         user.PasswordResetTokenHash = null;
@@ -167,7 +167,7 @@ public class AuthService : IAuthService
         user.RefreshToken = null;
         await _dbContext.SaveChangesAsync();
 
-        return AuthResult<string>.Ok("Password reset successful");
+        return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
     public async Task LogoutAsync(HttpRequest request, HttpResponse response)
@@ -262,7 +262,6 @@ public class AuthService : IAuthService
     {
         return new UserResponseDto
         {
-            Id = user.Id,
             Email = user.Email,
             FirstName = user.FirstName,
             SecondName = user.SecondName,

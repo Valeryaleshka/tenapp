@@ -1,18 +1,29 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router-dom';
-import { authService } from '../../services/auth/auth.service.ts';
+import { authService, type ResetPasswordPayload } from '../../../services/auth/auth.service.ts';
+
+type ResetPasswordFormValues = Omit<ResetPasswordPayload, 'token'>;
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ResetPasswordPage() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token') ?? '';
-    const [email, setEmail] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<ResetPasswordFormValues>({
+        defaultValues: {
+            email: '',
+            newPassword: '',
+        },
+    });
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const onSubmit: SubmitHandler<ResetPasswordFormValues> = async ({ email, newPassword }) => {
         setError(null);
         setSuccess(null);
 
@@ -20,8 +31,6 @@ export function ResetPasswordPage() {
             setError('Reset token is missing or invalid.');
             return;
         }
-
-        setIsSubmitting(true);
 
         try {
             await authService.resetPassword({
@@ -32,8 +41,6 @@ export function ResetPasswordPage() {
             setSuccess('Password reset successful. You can now sign in.');
         } catch {
             setError('Failed to reset password.');
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -45,31 +52,47 @@ export function ResetPasswordPage() {
                 {error && <div className="alert alert-danger">{error}</div>}
                 {success && <div className="alert alert-success">{success}</div>}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <div className="mb-3">
                         <label htmlFor="resetEmail" className="form-label">Email</label>
                         <input
                             id="resetEmail"
-                            className="form-control"
+                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                             type="email"
-                            required
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
+                            aria-invalid={Boolean(errors.email)}
+                            {...register('email', {
+                                required: 'Email is required.',
+                                pattern: {
+                                    value: emailPattern,
+                                    message: 'Enter a valid email address.',
+                                },
+                                onChange: () => {
+                                    setError(null);
+                                    setSuccess(null);
+                                },
+                            })}
                             placeholder="Enter your email"
                         />
+                        {errors.email && <div className="invalid-feedback d-block">{errors.email.message}</div>}
                     </div>
 
                     <div className="mb-3">
                         <label htmlFor="newPassword" className="form-label">New Password</label>
                         <input
                             id="newPassword"
-                            className="form-control"
+                            className={`form-control ${errors.newPassword ? 'is-invalid' : ''}`}
                             type="password"
-                            required
-                            value={newPassword}
-                            onChange={(event) => setNewPassword(event.target.value)}
+                            aria-invalid={Boolean(errors.newPassword)}
+                            {...register('newPassword', {
+                                validate: (value) => value.trim().length > 0 || 'New password is required.',
+                                onChange: () => {
+                                    setError(null);
+                                    setSuccess(null);
+                                },
+                            })}
                             placeholder="Enter new password"
                         />
+                        {errors.newPassword && <div className="invalid-feedback d-block">{errors.newPassword.message}</div>}
                     </div>
 
                     <button

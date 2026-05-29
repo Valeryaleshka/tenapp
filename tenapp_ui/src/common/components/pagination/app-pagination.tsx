@@ -1,8 +1,4 @@
-interface AppPaginationProps {
-    page: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-}
+import type {AppPaginationProps} from "./loading-wrapper.interfaces.ts";
 
 export function AppPagination({ page, totalPages, onPageChange }: AppPaginationProps) {
     const safeTotalPages = Math.max(1, totalPages);

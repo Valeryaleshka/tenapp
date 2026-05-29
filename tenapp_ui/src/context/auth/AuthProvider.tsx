@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AuthContext } from './auth-context';
-import { authService, type LoginPayload, type RegisterPayload, type UpdateAccountPayload, type User } from '../services/auth/auth.service';
-import type { AuthContextValue } from './auth-context.interfaces';
+import { AuthContext } from './auth-context.tsx';
+import { authService, type LoginPayload, type RegisterPayload, type UpdateAccountPayload, type User } from '../../services/auth/auth.service.ts';
+import type { AuthContextValue } from './auth-context.interfaces.tsx';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);

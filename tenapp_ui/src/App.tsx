@@ -2,12 +2,12 @@
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AppLayout } from './components/layout-components/layout/app-layout.tsx';
-import { ForgotPasswordPage } from './pages/login/forgot-password-page.tsx';
-import { LoginPage } from './pages/login/login-page.tsx';
+import { ForgotPasswordPage } from './pages/login/forgot-password/forgot-password-page.tsx';
+import { LoginPage } from './pages/login/login/login-page.tsx';
 import { PropertyDetailPage } from './pages/properties/property-detail-page.tsx';
 import { PropertiesPage } from './pages/properties/properties-page.tsx';
-import { RegisterPage } from './pages/login/register-page.tsx';
-import { ResetPasswordPage } from './pages/login/reset-password-page.tsx';
+import { RegisterPage } from './pages/login/register/register-page.tsx';
+import { ResetPasswordPage } from './pages/login/reset/reset-password-page.tsx';
 import { SettingsPage } from './pages/settings/settings-page.tsx';
 import { TenantDetailPage } from './pages/tenants/tenant-detail-page.tsx';
 import { TenantsPage } from './pages/tenants/tenants-page.tsx';

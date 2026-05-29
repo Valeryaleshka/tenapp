@@ -10,7 +10,7 @@ public interface IAuthService
     Task<AuthResult<UserResponseDto>> LoginAsync(LoginUserDto dto, HttpRequest request, HttpResponse response);
     Task<AuthResult<UserResponseDto>> RefreshAsync(HttpRequest request, HttpResponse response);
     Task ForgotPasswordAsync(ForgotPasswordDto dto);
-    Task<AuthResult<string>> ResetPasswordAsync(ResetPasswordDto dto);
+    Task<AuthResult<UserResponseDto>> ResetPasswordAsync(ResetPasswordDto dto);
     Task LogoutAsync(HttpRequest request, HttpResponse response);
     Task<AuthResult<UserResponseDto>> MeAsync(ClaimsPrincipal principal);
     Task<AuthResult<UserResponseDto>> UpdateAccountAsync(ClaimsPrincipal principal, UpdateAccountDto dto);

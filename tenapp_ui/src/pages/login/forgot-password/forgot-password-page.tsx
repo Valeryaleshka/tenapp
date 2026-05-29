@@ -1,26 +1,36 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { authService } from '../../services/auth/auth.service.ts';
+import { authService } from '../../../services/auth/auth.service.ts';
+
+interface ForgotPasswordFormValues {
+    email: string;
+}
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ForgotPasswordPage() {
-    const [email, setEmail] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<ForgotPasswordFormValues>({
+        defaultValues: {
+            email: '',
+        },
+    });
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const onSubmit: SubmitHandler<ForgotPasswordFormValues> = async ({ email }) => {
         setError(null);
         setSuccess(null);
-        setIsSubmitting(true);
 
         try {
             await authService.forgotPassword(email.trim());
             setSuccess('If the email exists, reset instructions were sent.');
         } catch {
             setError('Failed to request password reset.');
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -31,18 +41,28 @@ export function ForgotPasswordPage() {
                 {error && <div className="alert alert-danger">{error}</div>}
                 {success && <div className="alert alert-success">{success}</div>}
 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
                     <div className="mb-3">
                         <label htmlFor="forgot-email" className="form-label">Email</label>
                         <input
                             id="forgot-email"
-                            className="form-control"
+                            className={`form-control ${errors.email ? 'is-invalid' : ''}`}
                             type="email"
-                            required
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
+                            aria-invalid={Boolean(errors.email)}
+                            {...register('email', {
+                                required: 'Email is required.',
+                                pattern: {
+                                    value: emailPattern,
+                                    message: 'Enter a valid email address.',
+                                },
+                                onChange: () => {
+                                    setError(null);
+                                    setSuccess(null);
+                                },
+                            })}
                             placeholder="Enter your email"
                         />
+                        {errors.email && <div className="invalid-feedback d-block">{errors.email.message}</div>}
                     </div>
 
                     <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
