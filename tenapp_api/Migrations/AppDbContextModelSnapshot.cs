@@ -173,6 +173,11 @@ namespace TenappCore.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("password_reset_token_hash");
 
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone_number");
+
                     b.Property<string>("RefreshToken")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)")

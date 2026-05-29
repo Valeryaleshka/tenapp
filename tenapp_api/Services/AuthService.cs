@@ -199,6 +199,48 @@ public class AuthService : IAuthService
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
+    public async Task<AuthResult<UserResponseDto>> UpdateAccountAsync(ClaimsPrincipal principal, UpdateAccountDto dto)
+    {
+        if (!TryGetUserId(principal, out var userId))
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid access token");
+
+        var user = await _dbContext.Users.FindAsync(userId);
+        if (user == null)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "User not found");
+
+        var email = NormalizeService.NormalizeEmail(dto.Email);
+        if (string.IsNullOrWhiteSpace(email))
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "email is required");
+
+        var firstName = NormalizeService.NormalizeText(dto.FirstName);
+        var secondName = NormalizeService.NormalizeText(dto.SecondName);
+
+        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(secondName))
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "first name and last name are required");
+
+        if (firstName.Length > 100 || secondName.Length > 100)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "first name and last name must be 100 characters or less");
+
+        var emailExists = await _dbContext.Users.AnyAsync(u => u.Id != userId && u.Email == email);
+        if (emailExists)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status409Conflict, "Email already exists");
+
+        var phoneNumber = string.IsNullOrWhiteSpace(dto.PhoneNumber)
+            ? null
+            : dto.PhoneNumber.Trim();
+
+        if (phoneNumber?.Length > 30)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "phone number must be 30 characters or less");
+
+        user.Email = email;
+        user.FirstName = firstName;
+        user.SecondName = secondName;
+        user.PhoneNumber = phoneNumber;
+        await _dbContext.SaveChangesAsync();
+
+        return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
+    }
+
     private async Task IssueTokensAsync(User user, HttpResponse response, HttpRequest? httpRequest)
     {
         var tokens = _cookieService.GenerateAuthTokens(user.Id);
@@ -223,7 +265,8 @@ public class AuthService : IAuthService
             Id = user.Id,
             Email = user.Email,
             FirstName = user.FirstName,
-            SecondName = user.SecondName
+            SecondName = user.SecondName,
+            PhoneNumber = user.PhoneNumber
         };
     }
 

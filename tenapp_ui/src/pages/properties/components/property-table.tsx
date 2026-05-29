@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { LoadingWrapper } from '../../../components/loading-wrapper.tsx';
+import { useEffect, useRef, useState } from 'react';
+import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx';
 import {
     type Property,
     type PropertySortField,
@@ -11,6 +11,7 @@ import {
     getSortArrowClasses,
     type SortDirection,
 } from '../../../services/sort/sort.service.ts';
+import {AppPagination} from "../../../common/components/pagination/app-pagination.tsx";
 
 export function PropertyTable() {
     const pageSize = 30;
@@ -25,91 +26,52 @@ export function PropertyTable() {
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
 
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     const [searchField, setSearchField] = useState('');
     const [debouncedSearchField, setDebouncedSearchField] = useState('');
 
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
-    const isRequestInFlightRef = useRef(false);
 
     const visibleTableData = propertiesList.filter((item) => {
         return item.name.toLowerCase().includes(debouncedSearchField.trim().toLowerCase());
     });
 
+
     useEffect(() => {
         const controller = new AbortController();
-        let isCancelled = false;
 
         const loadProperties = async () => {
-            setIsLoading(currentPage === 1);
-            setIsLoadingMore(currentPage > 1);
-            isRequestInFlightRef.current = true;
+            setIsLoading(true);
 
             try {
-                const response = await propertyService.getAll(currentPage, pageSize, sortBy, sortDir, controller.signal);
-                if (isCancelled) {
-                    return;
-                }
+                const response = await propertyService.getAll(
+                    currentPage,
+                    pageSize,
+                    sortBy,
+                    sortDir,
+                    controller.signal
+                );
 
-                setPropertiesList((currentProperties) => {
-                    if (currentPage === 1) {
-                        return response.items;
-                    }
+                if(controller.signal.aborted) return;
 
-                    return [...currentProperties, ...response.items];
-                });
+                setPropertiesList(response.items);
                 setTotalCount(response.totalCount);
                 setTotalPages(response.totalPages);
-            } catch (error) {
-                if (!isCancelled) {
-                    console.error('Failed to load propertiesList:', error);
+            } catch (error: unknown | Error | DOMException) {
+                if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                    console.error('Failed to load properties:', error);
                 }
             } finally {
-                if (!isCancelled) {
+                if (!controller.signal.aborted) {
                     setIsLoading(false);
-                    setIsLoadingMore(false);
                 }
-
-                isRequestInFlightRef.current = false;
             }
         };
 
         void loadProperties();
 
-        return () => {
-            controller.abort();
-            isCancelled = true;
-        };
+        return () => controller.abort();
     }, [currentPage, pageSize, sortBy, sortDir]);
-
-    useEffect(() => {
-        const target = loadMoreRef.current;
-
-
-
-        if (!target || isLoading || isLoadingMore || currentPage >= totalPages) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                console.log(entries[0])
-                if (entries[0]?.isIntersecting && !isRequestInFlightRef.current) {
-                    setCurrentPage((currentPage) => currentPage + 1);
-                }
-            },
-            {
-                rootMargin: '200px 0px',
-            },
-        );
-
-        observer.observe(target);
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [isLoading, isLoadingMore, currentPage, totalPages]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -131,7 +93,7 @@ export function PropertyTable() {
     };
 
     return (
-        <Fragment>
+        <>
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <div>
 
@@ -257,12 +219,11 @@ export function PropertyTable() {
                 </table>
                 <div ref={loadMoreRef}></div>
             </LoadingWrapper>
+
             <div className="d-flex justify-content-between align-items-center">
-                <small className="text-muted">
-                    Showing {visibleTableData.length} of {totalCount}
-                </small>
-                {isLoadingMore && <small className="text-muted">Loading more...</small>}
+                <small className="text-muted">Total: {totalCount}</small>
+                <AppPagination page={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
             </div>
-        </Fragment>
+        </>
     );
 }

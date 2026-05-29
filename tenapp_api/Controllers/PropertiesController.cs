@@ -1,11 +1,10 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TenappCore.Data;
 using TenappCore.DTOs;
 using TenappCore.Models;
+using TenappCore.Services;
 
 namespace TenappCore.Controllers;
 
@@ -14,11 +13,13 @@ namespace TenappCore.Controllers;
 [Route("api/[controller]")]
 public class PropertiesController : ControllerBase
 {
+    private readonly ICurrentUserService _currentUserService;
     private readonly AppDbContext _dbContext;
 
-    public PropertiesController(AppDbContext dbContext)
+    public PropertiesController(AppDbContext dbContext, ICurrentUserService currentUserService)
     {
         _dbContext = dbContext;
+        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -28,7 +29,7 @@ public class PropertiesController : ControllerBase
         [FromQuery] string sortBy = "name",
         [FromQuery] string sortDir = "asc")
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         page = Math.Max(1, page);
@@ -89,7 +90,7 @@ public class PropertiesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PropertyResponseDto>> GetById(Guid id)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         var property = await _dbContext.Properties
@@ -120,7 +121,7 @@ public class PropertiesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<PropertyResponseDto>> Create(CreatePropertyDto dto)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Type) || string.IsNullOrWhiteSpace(dto.Address))
@@ -163,7 +164,7 @@ public class PropertiesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PropertyResponseDto>> Update(Guid id, CreatePropertyDto dto)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Type) || string.IsNullOrWhiteSpace(dto.Address))
@@ -205,7 +206,7 @@ public class PropertiesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         var property = await _dbContext.Properties
@@ -218,15 +219,6 @@ public class PropertiesController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         return NoContent();
-    }
-
-    private bool TryGetUserId(out Guid userId)
-    {
-        var subject =
-            User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        return Guid.TryParse(subject, out userId);
     }
 
     private static PropertyResponseDto ToResponseDto(Property property, Tenant? tenant = null)

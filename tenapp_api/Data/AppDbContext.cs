@@ -40,6 +40,9 @@ public class AppDbContext : DbContext
                 .HasColumnName("second_name")
                 .IsRequired()
                 .HasMaxLength(100);
+            entity.Property(e => e.PhoneNumber)
+                .HasColumnName("phone_number")
+                .HasMaxLength(30);
             entity.Property(e => e.RefreshToken)
                 .HasColumnName("refresh_token")
                 .HasMaxLength(2000);

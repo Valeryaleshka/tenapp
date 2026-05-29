@@ -1,9 +1,4 @@
-import type { ReactNode } from 'react';
-
-interface LoadingWrapperProps {
-    isLoading: boolean;
-    children: ReactNode;
-}
+import type {LoadingWrapperProps} from "./loading-wrapper.inrfaces.ts";
 
 export function LoadingWrapper({ isLoading, children }: LoadingWrapperProps) {
     return (

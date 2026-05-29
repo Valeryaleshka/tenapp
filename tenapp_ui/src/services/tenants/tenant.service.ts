@@ -22,6 +22,17 @@ export interface TenantSelect {
     name: string;
 }
 
+export interface TenantDailyStats {
+    date: string;
+    count: number;
+    accumulatedCount: number;
+}
+
+export interface TenantDailyStatsQuery {
+    startDate?: string;
+    endDate?: string;
+}
+
 export interface TenantSelectQuery {
     search?: string;
     limit?: number;
@@ -51,8 +62,10 @@ export const tenantService = {
         pageSize = 20,
         sortBy: TenantSortField = 'firstName',
         sortDir: SortDirection = 'asc',
+        signal?: AbortSignal,
     ): Promise<PagedResponse<Tenant>> => {
         const response = await apiClient.get('/tenants', {
+            signal,
             params: { page, pageSize, sortBy, sortDir },
         });
         return response.data;
@@ -75,6 +88,17 @@ export const tenantService = {
                 search: query.search || undefined,
                 limit: query.limit,
                 selectedTenantId: query.selectedTenantId || undefined,
+            },
+        });
+        return response.data;
+    },
+
+    getDailyStats: async (query: TenantDailyStatsQuery = {}, signal?: AbortSignal): Promise<TenantDailyStats[]> => {
+        const response = await apiClient.get('/tenants/daily-stats', {
+            signal,
+            params: {
+                startDate: query.startDate || undefined,
+                endDate: query.endDate || undefined,
             },
         });
         return response.data;

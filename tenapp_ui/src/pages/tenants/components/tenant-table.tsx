@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { AppPagination } from '../../../components/app-pagination.tsx';
-import { LoadingWrapper } from '../../../components/loading-wrapper.tsx';
+import { AppPagination } from '../../../common/components/pagination/app-pagination.tsx';
+import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx';
 import {
     tenantService,
     type Tenant,
@@ -23,29 +23,39 @@ export function TenantTable() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        let isCancelled = false;
+        const controller = new AbortController();
 
-        void tenantService.getAll(page, 20, sortBy, sortDir).then((response) => {
-            if (isCancelled) {
-                return;
-            }
+        const run = async () => {
+            setIsLoading(true);
 
-            setTenants(response.items);
-            setTotalPages(Math.max(1, response.totalPages));
-            setTotalCount(response.totalCount);
-        }).catch((error) => {
-            if (!isCancelled) {
-                console.error('Failed to load tenants:', error);
-            }
-        }).finally(() => {
-            if (!isCancelled) {
-                setIsLoading(false);
-            }
-        });
+            try {
+                const response = await tenantService.getAll(
+                    page,
+                    20,
+                    sortBy,
+                    sortDir,
+                    controller.signal
+                );
 
-        return () => {
-            isCancelled = true;
+                if (controller.signal.aborted) return;
+
+                setTenants(response.items);
+                setTotalPages(Math.max(1, response.totalPages));
+                setTotalCount(response.totalCount);
+            } catch (error: unknown | Error | DOMException) {
+                if (!(error instanceof DOMException && error.name === 'AbortError')) {
+                    console.error('Failed to load properties:', error);
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setIsLoading(false);
+                }
+            }
         };
+
+        void run();
+
+        return () => controller.abort();
     }, [page, sortBy, sortDir]);
 
     const applySort = (field: TenantSortField) => {

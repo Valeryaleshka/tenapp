@@ -1,13 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Net.Mail;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TenappCore.Data;
 using TenappCore.DTOs;
 using TenappCore.Models;
+using TenappCore.Services;
 
 namespace TenappCore.Controllers;
 
@@ -16,11 +15,13 @@ namespace TenappCore.Controllers;
 [Route("api/[controller]")]
 public class TenantsController : ControllerBase
 {
+    private readonly ICurrentUserService _currentUserService;
     private readonly AppDbContext _dbContext;
 
-    public TenantsController(AppDbContext dbContext)
+    public TenantsController(AppDbContext dbContext, ICurrentUserService currentUserService)
     {
         _dbContext = dbContext;
+        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -30,7 +31,7 @@ public class TenantsController : ControllerBase
         [FromQuery] TenantSortBy sortBy = TenantSortBy.FirstName,
         [FromQuery] SortDirection sortDir = SortDirection.Asc)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         page = Math.Max(1, page);
@@ -88,7 +89,7 @@ public class TenantsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<TenantResponseDto>> GetById(Guid id)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         var tenant = await _dbContext.Tenants
@@ -108,7 +109,7 @@ public class TenantsController : ControllerBase
         [FromQuery] int limit = 50,
         [FromQuery] Guid? selectedTenantId = null)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         limit = Math.Clamp(limit, 1, 100);
@@ -160,7 +161,7 @@ public class TenantsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TenantResponseDto>> Create(CreateTenantDto dto)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         if (string.IsNullOrWhiteSpace(dto.FirstName) ||
@@ -199,7 +200,7 @@ public class TenantsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<TenantResponseDto>> Update(Guid id, CreateTenantDto dto)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         if (string.IsNullOrWhiteSpace(dto.FirstName) ||
@@ -237,7 +238,7 @@ public class TenantsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        if (!TryGetUserId(out var userId))
+        if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
 
         var tenant = await _dbContext.Tenants
@@ -249,15 +250,6 @@ public class TenantsController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         return NoContent();
-    }
-
-    private bool TryGetUserId(out Guid userId)
-    {
-        var subject =
-            User.FindFirstValue(JwtRegisteredClaimNames.Sub) ??
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        return Guid.TryParse(subject, out userId);
     }
 
     private static bool IsValidEmail(string email)

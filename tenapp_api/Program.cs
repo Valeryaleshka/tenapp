@@ -17,13 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 builder.Logging.AddFile(builder.Configuration.GetSection("Logging:File"), builder.Environment.ContentRootPath);
 
-// Add services
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddCustomApiBehavior();
+builder.Services.AddHttpContextAccessor();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key is missing");
@@ -38,6 +38,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services
 builder.Services.AddScoped<ICookieService, CookieService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.Configure<MailgunOptions>(builder.Configuration.GetSection(MailgunOptions.SectionName));
 builder.Services.AddScoped<IMailgunService, MailgunService>();

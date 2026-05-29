@@ -69,6 +69,14 @@ public class AuthController : ControllerBase
         return ToActionResult(result);
     }
 
+    [Authorize]
+    [HttpPut("account")]
+    public async Task<ActionResult<UserResponseDto>> UpdateAccount(UpdateAccountDto dto)
+    {
+        var result = await _authService.UpdateAccountAsync(User, dto);
+        return ToActionResult(result);
+    }
+
     private ActionResult<UserResponseDto> ToActionResult(AuthResult<UserResponseDto> result)
     {
         if (result.Success)

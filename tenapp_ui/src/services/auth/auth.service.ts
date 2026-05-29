@@ -1,12 +1,13 @@
 import { apiClient } from '../api/api-client.ts';
 
 export interface User {
-    id?: number;
-    login: string;
-    email?: string;
+    id: string;
+    email: string;
     firstName: string;
     secondName?: string;
     lastName?: string;
+    login?: string;
+    phoneNumber?: string | null;
 }
 
 export interface LoginPayload {
@@ -23,6 +24,13 @@ export interface ResetPasswordPayload {
     email: string;
     token: string;
     newPassword: string;
+}
+
+export interface UpdateAccountPayload {
+    firstName: string;
+    secondName: string;
+    email: string;
+    phoneNumber?: string | null;
 }
 
 const extractUser = (data: unknown): User | null => {
@@ -62,6 +70,17 @@ export const authService = {
 
         if (!user) {
             throw new Error('Failed to load current user');
+        }
+
+        return user;
+    },
+
+    async updateAccount(payload: UpdateAccountPayload): Promise<User> {
+        const response = await apiClient.put('/auth/account', payload);
+        const user = extractUser(response.data);
+
+        if (!user) {
+            throw new Error('Failed to update account');
         }
 
         return user;

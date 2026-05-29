@@ -26,6 +26,17 @@ export interface PropertyUpsertPayload {
     endDate?: string | null;
 }
 
+export interface PropertyDailyStats {
+    date: string;
+    activeLeaseCount: number;
+    accumulatedStartedLeaseCount: number;
+}
+
+export interface PropertyDailyStatsQuery {
+    startDate?: string;
+    endDate?: string;
+}
+
 export interface PagedResponse<T> {
     items: T[];
     page: number;
@@ -58,6 +69,20 @@ export const propertyService = {
 
     add: async (property: PropertyUpsertPayload): Promise<Property> => {
         const response = await apiClient.post('/properties', property);
+        return response.data;
+    },
+
+    getDailyStats: async (
+        query: PropertyDailyStatsQuery = {},
+        signal?: AbortSignal,
+    ): Promise<PropertyDailyStats[]> => {
+        const response = await apiClient.get('/properties/daily-stats', {
+            signal,
+            params: {
+                startDate: query.startDate || undefined,
+                endDate: query.endDate || undefined,
+            },
+        });
         return response.data;
     },
 
