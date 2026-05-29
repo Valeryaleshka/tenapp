@@ -1,13 +1,13 @@
 # Tenapp Core API
 
-Backend API for authentication and property management.
+Backend Part of Property Managment Application
 
 ## Stack
 
 - .NET 9 (ASP.NET Core Web API)
 - Entity Framework Core + PostgreSQL
 - JWT auth with HttpOnly cookies
-- Swagger/OpenAPI in Development
+- Swagger
 
 ## Local Prerequisites
 
@@ -116,6 +116,29 @@ Stop containers:
 
 ```powershell
 docker compose down
+```
+
+## Tests
+
+Unit tests live in [TenappCore.Tests](D:/tenapp/tenapp_api/TenappCore.Tests/TenappCore.Tests.csproj) and use xUnit.net with EF Core InMemory.
+
+The current suite covers:
+
+- Auth, tenant, and property controller result mapping and validation
+- Auth service registration, login, refresh, password reset, account update, and logout flows
+- Cookie token generation, validation, hashing, and cookie writes
+- Current user resolution, normalization helpers, Mailgun configuration validation, and email queue enqueue behavior
+
+Run tests:
+
+```powershell
+dotnet test TenappCore.Tests\TenappCore.Tests.csproj
+```
+
+If the API is already running locally and locks `bin\Debug`, run tests with isolated output folders:
+
+```powershell
+dotnet test TenappCore.Tests\TenappCore.Tests.csproj /p:BaseOutputPath=artifacts\test-bin\ /p:BaseIntermediateOutputPath=artifacts\test-obj\
 ```
 
 ## Configuration
