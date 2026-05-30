@@ -1,10 +1,9 @@
-import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react';
-import { tenantService } from '../../../services/tenants/tenant.service.ts';
+import { type ChangeEvent, type FormEvent, useState } from 'react';
+import { useAddTenantMutation } from '../../../services/tenants/tenant.queries.ts';
 
 interface AddTenantProps {
     show: boolean;
     onHide: () => void;
-    onTenantAdded: () => void;
 }
 
 interface TenantFormState {
@@ -21,37 +20,36 @@ const initialFormState: TenantFormState = {
     email: '',
 };
 
-export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
+export function AddTenant({ show, onHide }: AddTenantProps) {
+    const addTenantMutation = useAddTenantMutation();
     const [formData, setFormData] = useState<TenantFormState>(initialFormState);
-
-    useEffect(() => {
-        if (show) {
-            setFormData(initialFormState);
-        }
-    }, [show]);
+    const [error, setError] = useState<string | null>(null);
 
     const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
+    const handleClose = () => {
+        setFormData(initialFormState);
+        setError(null);
+        onHide();
+    };
+
     const submitAdd = async () => {
+        setError(null);
+
         try {
-            setIsSubmitting(true);
-            await tenantService.add({
+            await addTenantMutation.mutateAsync({
                 firstName: formData.firstName.trim(),
                 lastName: formData.lastName.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
                 email: formData.email.trim(),
             });
             setFormData(initialFormState);
-            onTenantAdded();
             onHide();
-        } catch (error) {
-            console.error('Failed to create tenant:', error);
-        } finally {
-            setIsSubmitting(false);
+        } catch {
+            setError('Could not add tenant. Please try again.');
         }
     };
 
@@ -71,9 +69,10 @@ export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title">Add Tenant</h5>
-                            <button type="button" className="btn-close" aria-label="Close" onClick={onHide} />
+                            <button type="button" className="btn-close" aria-label="Close" onClick={handleClose} />
                         </div>
                         <div className="modal-body">
+                            {error && <div className="alert alert-danger">{error}</div>}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
                                     <label htmlFor="tenant-firstName" className="form-label">First Name</label>
@@ -126,17 +125,17 @@ export function AddTenant({ show, onHide, onTenantAdded }: AddTenantProps) {
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={onHide} disabled={isSubmitting}>
+                            <button type="button" className="btn btn-secondary" onClick={handleClose} disabled={addTenantMutation.isPending}>
                                 Cancel
                             </button>
-                            <button type="button" className="btn btn-primary" onClick={() => void submitAdd()} disabled={isSubmitting}>
-                                {isSubmitting ? 'Adding...' : 'Add Tenant'}
+                            <button type="button" className="btn btn-primary" onClick={() => void submitAdd()} disabled={addTenantMutation.isPending}>
+                                {addTenantMutation.isPending ? 'Adding...' : 'Add Tenant'}
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="modal-backdrop fade show" onClick={onHide} />
+            <div className="modal-backdrop fade show" onClick={handleClose} />
         </>
     );
 }

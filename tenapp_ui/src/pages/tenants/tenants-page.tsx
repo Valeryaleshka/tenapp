@@ -1,14 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { AddTenant } from './components/tenant-add.tsx';
 import { TenantTable } from './components/tenant-table.tsx';
 
 export function TenantsPage() {
     const [showAddTenantModal, setShowAddTenantModal] = useState(false);
-    const [tenantRefreshTrigger, setTenantRefreshTrigger] = useState(0);
-
-    const handleTenantAdded = useCallback(() => {
-        setTenantRefreshTrigger((prev) => prev + 1);
-    }, []);
 
     return (
         <div className="container py-4">
@@ -19,12 +14,11 @@ export function TenantsPage() {
                 </button>
             </div>
 
-            <TenantTable key={tenantRefreshTrigger} />
+            <TenantTable />
 
             <AddTenant
                 show={showAddTenantModal}
                 onHide={() => setShowAddTenantModal(false)}
-                onTenantAdded={handleTenantAdded}
             />
         </div>
     );

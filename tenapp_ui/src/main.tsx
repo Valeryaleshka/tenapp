@@ -1,16 +1,20 @@
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App.tsx'
 import {AuthProvider} from "./context/auth/AuthProvider.tsx";
+import { queryClient } from './common/infra/query-client.ts';
 
 
 createRoot(document.getElementById('root')!).render(
   // <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   // </StrictMode>,
 )

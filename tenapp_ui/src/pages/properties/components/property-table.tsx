@@ -1,81 +1,35 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx';
-import {
-    type Property,
-    type PropertySortField,
-    propertyService,
-} from '../../../services/properties/property.service.ts';
+
 import {
     getNextSortDirection,
     getSortArrowClasses,
     type SortDirection,
 } from '../../../services/sort/sort.service.ts';
 import {AppPagination} from "../../../common/components/pagination/app-pagination.tsx";
+import { usePropertiesQuery } from '../../../services/properties/property.queries.ts';
+import type {PropertySortField} from "../../../services/properties/property.interfaces.ts";
 
 export function PropertyTable() {
     const pageSize = 30;
 
-    const [propertiesList, setPropertiesList] = useState<Property[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
-
-    const [totalCount, setTotalCount] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
 
     const [sortBy, setSortBy] = useState<PropertySortField>('name');
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
 
-    const [isLoading, setIsLoading] = useState(true);
-
     const [searchField, setSearchField] = useState('');
     const [debouncedSearchField, setDebouncedSearchField] = useState('');
-
-    const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-    const visibleTableData = propertiesList.filter((item) => {
-        return item.name.toLowerCase().includes(debouncedSearchField.trim().toLowerCase());
-    });
-
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        const loadProperties = async () => {
-            setIsLoading(true);
-
-            try {
-                const response = await propertyService.getAll(
-                    currentPage,
-                    pageSize,
-                    sortBy,
-                    sortDir,
-                    controller.signal
-                );
-
-                if(controller.signal.aborted) return;
-
-                setPropertiesList(response.items);
-                setTotalCount(response.totalCount);
-                setTotalPages(response.totalPages);
-            } catch (error: unknown | Error | DOMException) {
-                if (!(error instanceof DOMException && error.name === 'AbortError')) {
-                    console.error('Failed to load properties:', error);
-                }
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        void loadProperties();
-
-        return () => controller.abort();
-    }, [currentPage, pageSize, sortBy, sortDir]);
+    const propertiesQuery = usePropertiesQuery(currentPage, pageSize, sortBy, sortDir, debouncedSearchField);
+    const propertiesList = propertiesQuery.data?.items ?? [];
+    const totalCount = propertiesQuery.data?.totalCount ?? 0;
+    const totalPages = Math.max(1, propertiesQuery.data?.totalPages ?? 1);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            setDebouncedSearchField(searchField);
+            setDebouncedSearchField(searchField.trim());
+            setCurrentPage(1);
         }, 500);
 
         return () => {
@@ -85,8 +39,6 @@ export function PropertyTable() {
 
     const applySort = (field: PropertySortField) => {
         const nextDirection = getNextSortDirection(sortBy, field, sortDir);
-        setIsLoading(true);
-        setPropertiesList([]);
         setSortBy(field);
         setSortDir(nextDirection);
         setCurrentPage(1);
@@ -116,8 +68,6 @@ export function PropertyTable() {
                         aria-label="Sort properties by field"
                         value={sortBy}
                         onChange={(event) => {
-                            setIsLoading(true);
-                            setPropertiesList([]);
                             setSortBy(event.target.value as PropertySortField);
                             setCurrentPage(1);
                         }}
@@ -132,8 +82,6 @@ export function PropertyTable() {
                         aria-label="Sort properties direction"
                         value={sortDir}
                         onChange={(event) => {
-                            setIsLoading(true);
-                            setPropertiesList([]);
                             setSortDir(event.target.value as SortDirection);
                             setCurrentPage(1);
                         }}
@@ -147,7 +95,11 @@ export function PropertyTable() {
 
             </div>
 
-            <LoadingWrapper isLoading={isLoading}>
+            {propertiesQuery.isError && (
+                <div className="alert alert-danger">Could not load properties. Please try again.</div>
+            )}
+
+            <LoadingWrapper isLoading={propertiesQuery.isFetching}>
                 <table className="table table-striped table-bordered table-hover align-middle">
                     <thead>
                         <tr>
@@ -197,7 +149,7 @@ export function PropertyTable() {
                         </tr>
                     </thead>
                     <tbody>
-                        {visibleTableData.map((property) => {
+                        {propertiesList.map((property) => {
                             return <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
                                 <td>{property.name}</td>
                                 <td>{property.address}</td>
@@ -217,12 +169,11 @@ export function PropertyTable() {
                         )}
                     </tbody>
                 </table>
-                <div ref={loadMoreRef}></div>
             </LoadingWrapper>
 
             <div className="d-flex justify-content-between align-items-center">
                 <small className="text-muted">Total: {totalCount}</small>
-                <AppPagination page={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />
+                {propertiesList.length && <AppPagination page={currentPage} totalPages={totalPages} onPageChange={(page) => setCurrentPage(page)} />}
             </div>
         </>
     );

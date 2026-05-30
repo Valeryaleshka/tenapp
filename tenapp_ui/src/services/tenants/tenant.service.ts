@@ -64,25 +64,25 @@ export const tenantService = {
         sortDir: SortDirection = 'asc',
         signal?: AbortSignal,
     ): Promise<PagedResponse<Tenant>> => {
-        const response = await apiClient.get('/tenants', {
+        const response = await apiClient.get<PagedResponse<Tenant>>('/tenants', {
             signal,
             params: { page, pageSize, sortBy, sortDir },
         });
         return response.data;
     },
 
-    getById: async (id: string): Promise<Tenant> => {
-        const response = await apiClient.get(`/tenants/${id}`);
+    getById: async (id: string, signal?: AbortSignal): Promise<Tenant> => {
+        const response = await apiClient.get<Tenant>(`/tenants/${id}`, { signal });
         return response.data;
     },
 
     add: async (payload: CreateTenantPayload): Promise<Tenant> => {
-        const response = await apiClient.post('/tenants', payload);
+        const response = await apiClient.post<Tenant>('/tenants', payload);
         return response.data;
     },
 
     getForSelect: async (query: TenantSelectQuery = {}, signal?: AbortSignal): Promise<TenantSelect[]> => {
-        const response = await apiClient.get('/tenants/select', {
+        const response = await apiClient.get<TenantSelect[]>('/tenants/select', {
             signal,
             params: {
                 search: query.search || undefined,
@@ -94,7 +94,7 @@ export const tenantService = {
     },
 
     getDailyStats: async (query: TenantDailyStatsQuery = {}, signal?: AbortSignal): Promise<TenantDailyStats[]> => {
-        const response = await apiClient.get('/tenants/daily-stats', {
+        const response = await apiClient.get<TenantDailyStats[]>('/tenants/daily-stats', {
             signal,
             params: {
                 startDate: query.startDate || undefined,
@@ -105,7 +105,7 @@ export const tenantService = {
     },
 
     update: async (id: string, payload: CreateTenantPayload): Promise<Tenant> => {
-        const response = await apiClient.put(`/tenants/${id}`, payload);
+        const response = await apiClient.put<Tenant>(`/tenants/${id}`, payload);
         return response.data;
     },
 

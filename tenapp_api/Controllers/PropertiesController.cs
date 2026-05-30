@@ -27,7 +27,8 @@ public class PropertiesController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string sortBy = "name",
-        [FromQuery] string sortDir = "asc")
+        [FromQuery] string sortDir = "asc",
+        [FromQuery] string? search = null)
     {
         if (!_currentUserService.TryGetUserId(out var userId))
             return Unauthorized("Invalid access token");
@@ -38,6 +39,12 @@ public class PropertiesController : ControllerBase
         var filteredQuery = _dbContext.Properties
             .AsNoTracking()
             .Where(p => p.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim().ToLower();
+            filteredQuery = filteredQuery.Where(p => p.Name.ToLower().Contains(searchTerm));
+        }
 
         var descending = string.Equals(sortDir, "desc", StringComparison.OrdinalIgnoreCase);
         var sortedQuery = sortBy.ToLowerInvariant() switch

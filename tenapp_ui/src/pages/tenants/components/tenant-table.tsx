@@ -1,10 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AppPagination } from '../../../common/components/pagination/app-pagination.tsx';
 import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx';
 import {
-    tenantService,
-    type Tenant,
     type TenantSortField,
 } from '../../../services/tenants/tenant.service.ts';
 import {
@@ -12,62 +10,26 @@ import {
     getSortArrowClasses,
     type SortDirection,
 } from '../../../services/sort/sort.service.ts';
+import { useTenantsQuery } from '../../../services/tenants/tenant.queries.ts';
 
 export function TenantTable() {
-    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const pageSize = 20;
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
     const [sortBy, setSortBy] = useState<TenantSortField>('firstName');
     const [sortDir, setSortDir] = useState<SortDirection>('asc');
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        const run = async () => {
-            setIsLoading(true);
-
-            try {
-                const response = await tenantService.getAll(
-                    page,
-                    20,
-                    sortBy,
-                    sortDir,
-                    controller.signal
-                );
-
-                if (controller.signal.aborted) return;
-
-                setTenants(response.items);
-                setTotalPages(Math.max(1, response.totalPages));
-                setTotalCount(response.totalCount);
-            } catch (error: unknown | Error | DOMException) {
-                if (!(error instanceof DOMException && error.name === 'AbortError')) {
-                    console.error('Failed to load properties:', error);
-                }
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false);
-                }
-            }
-        };
-
-        void run();
-
-        return () => controller.abort();
-    }, [page, sortBy, sortDir]);
+    const tenantsQuery = useTenantsQuery(page, pageSize, sortBy, sortDir);
+    const tenants = tenantsQuery.data?.items ?? [];
+    const totalPages = Math.max(1, tenantsQuery.data?.totalPages ?? 1);
+    const totalCount = tenantsQuery.data?.totalCount ?? 0;
 
     const applySort = (field: TenantSortField) => {
         const nextDirection = getNextSortDirection(sortBy, field, sortDir);
-        setIsLoading(true);
         setSortBy(field);
         setSortDir(nextDirection);
         setPage(1);
     };
 
     const handlePageChange = (nextPage: number) => {
-        setIsLoading(true);
         setPage(nextPage);
     };
 
@@ -79,7 +41,6 @@ export function TenantTable() {
                     aria-label="Sort tenants by field"
                     value={sortBy}
                     onChange={(event) => {
-                        setIsLoading(true);
                         setSortBy(event.target.value as TenantSortField);
                         setPage(1);
                     }}
@@ -93,7 +54,6 @@ export function TenantTable() {
                     aria-label="Sort tenants direction"
                     value={sortDir}
                     onChange={(event) => {
-                        setIsLoading(true);
                         setSortDir(event.target.value as SortDirection);
                         setPage(1);
                     }}
@@ -104,7 +64,11 @@ export function TenantTable() {
                 </select>
             </div>
 
-            <LoadingWrapper isLoading={isLoading}>
+            {tenantsQuery.isError && (
+                <div className="alert alert-danger">Could not load tenants. Please try again.</div>
+            )}
+
+            <LoadingWrapper isLoading={tenantsQuery.isFetching}>
                 <table className="table table-striped table-bordered table-hover mt-4 align-middle">
                     <thead>
                         <tr>

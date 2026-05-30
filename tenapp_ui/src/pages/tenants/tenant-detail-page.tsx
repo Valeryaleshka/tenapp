@@ -1,47 +1,39 @@
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { tenantService, type Tenant } from '../../services/tenants/tenant.service.ts';
+import {
+    useDeleteTenantMutation,
+    useTenantQuery,
+    useUpdateTenantMutation,
+} from '../../services/tenants/tenant.queries.ts';
 
 export function TenantDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const [tenant, setTenant] = useState<Tenant | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const tenantQuery = useTenantQuery(id);
+    const updateTenantMutation = useUpdateTenantMutation(id);
+    const deleteTenantMutation = useDeleteTenantMutation(id);
+    const [isDeleted, setIsDeleted] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [editForm, setEditForm] = useState({
         firstName: '',
         lastName: '',
         phoneNumber: '',
         email: '',
     });
+    const tenant = isDeleted ? null : tenantQuery.data;
 
-    useEffect(() => {
-        if (!id) {
+    const resetEditForm = () => {
+        if (!tenant) {
             return;
         }
 
-        const load = async () => {
-            try {
-                setIsLoading(true);
-                const data = await tenantService.getById(id);
-                setTenant(data);
-                setEditForm({
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    phoneNumber: data.phoneNumber,
-                    email: data.email,
-                });
-            } catch (error) {
-                console.error('Failed to load tenant details:', error);
-                setTenant(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        void load();
-    }, [id]);
+        setEditForm({
+            firstName: tenant.firstName,
+            lastName: tenant.lastName,
+            phoneNumber: tenant.phoneNumber,
+            email: tenant.email,
+        });
+    };
 
     const handleEditChange = (event: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -53,20 +45,18 @@ export function TenantDetailPage() {
             return;
         }
 
+        setError(null);
+
         try {
-            setIsSaving(true);
-            const updated = await tenantService.update(id, {
+            await updateTenantMutation.mutateAsync({
                 firstName: editForm.firstName.trim(),
                 lastName: editForm.lastName.trim(),
                 phoneNumber: editForm.phoneNumber.trim(),
                 email: editForm.email.trim(),
             });
-            setTenant(updated);
             setShowEditModal(false);
-        } catch (error) {
-            console.error('Failed to update tenant:', error);
-        } finally {
-            setIsSaving(false);
+        } catch {
+            setError('Could not update tenant. Please try again.');
         }
     };
 
@@ -75,19 +65,18 @@ export function TenantDetailPage() {
             return;
         }
 
+        setError(null);
+
         try {
-            setIsDeleting(true);
-            await tenantService.delete(id);
-            setTenant(null);
+            await deleteTenantMutation.mutateAsync();
+            setIsDeleted(true);
             setShowEditModal(false);
-        } catch (error) {
-            console.error('Failed to delete tenant:', error);
-        } finally {
-            setIsDeleting(false);
+        } catch {
+            setError('Could not delete tenant. Please try again.');
         }
     };
 
-    if (isLoading) {
+    if (tenantQuery.isLoading) {
         return (
             <div className="py-4">
                 <div className="spinner-border text-primary" role="status" aria-label="Loading tenant details" />
@@ -95,7 +84,7 @@ export function TenantDetailPage() {
         );
     }
 
-    if (!tenant) {
+    if (tenantQuery.isError || !tenant) {
         return (
             <div className="py-4">
                 <div className="alert alert-warning">Tenant not found or has been deleted.</div>
@@ -110,7 +99,10 @@ export function TenantDetailPage() {
                 <h1 className="h4 mb-0 page-title">Tenant Details</h1>
                 <div className="d-flex gap-2">
                     <Link to="/tenants" className="btn btn-secondary">Back</Link>
-                    <button type="button" className="btn btn-primary" onClick={() => setShowEditModal(true)}>Edit</button>
+                    <button type="button" className="btn btn-primary" onClick={() => {
+                        resetEditForm();
+                        setShowEditModal(true);
+                    }}>Edit</button>
                 </div>
             </div>
 
@@ -144,9 +136,14 @@ export function TenantDetailPage() {
                             <div className="modal-content">
                                 <div className="modal-header">
                                     <h5 className="modal-title">Edit Tenant</h5>
-                                    <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowEditModal(false)} />
+                                    <button type="button" className="btn-close" aria-label="Close" onClick={() => {
+                                        resetEditForm();
+                                        setError(null);
+                                        setShowEditModal(false);
+                                    }} />
                                 </div>
                                 <div className="modal-body">
+                                    {error && <div className="alert alert-danger">{error}</div>}
                                     <form>
                                         <div className="mb-3">
                                             <label htmlFor="edit-tenant-firstName" className="form-label">First Name</label>
@@ -167,22 +164,30 @@ export function TenantDetailPage() {
                                     </form>
                                 </div>
                                 <div className="modal-footer d-flex justify-content-between">
-                                    <button type="button" className="btn btn-danger" onClick={() => void handleDelete()} disabled={isSaving || isDeleting}>
-                                        {isDeleting ? 'Deleting...' : 'Delete'}
+                                    <button type="button" className="btn btn-danger" onClick={() => void handleDelete()} disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}>
+                                        {deleteTenantMutation.isPending ? 'Deleting...' : 'Delete'}
                                     </button>
                                     <div className="d-flex gap-2">
-                                        <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)} disabled={isSaving || isDeleting}>
+                                        <button type="button" className="btn btn-secondary" onClick={() => {
+                                            resetEditForm();
+                                            setError(null);
+                                            setShowEditModal(false);
+                                        }} disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}>
                                             Cancel
                                         </button>
-                                        <button type="button" className="btn btn-primary" onClick={() => void handleSave()} disabled={isSaving || isDeleting}>
-                                            {isSaving ? 'Saving...' : 'Save'}
+                                        <button type="button" className="btn btn-primary" onClick={() => void handleSave()} disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}>
+                                            {updateTenantMutation.isPending ? 'Saving...' : 'Save'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="modal-backdrop fade show" onClick={() => setShowEditModal(false)} />
+                    <div className="modal-backdrop fade show" onClick={() => {
+                        resetEditForm();
+                        setError(null);
+                        setShowEditModal(false);
+                    }} />
                 </>
             )}
         </div>

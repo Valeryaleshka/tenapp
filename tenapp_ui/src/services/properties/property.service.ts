@@ -1,51 +1,13 @@
 import { apiClient } from '../api/api-client.ts';
 import { type SortDirection } from '../sort/sort.service.ts';
+import type {
+    PagedResponse,
+    Property, PropertyDailyStats,
+    PropertyDailyStatsQuery,
+    PropertySortField,
+    PropertyUpsertPayload
+} from "./property.interfaces.ts";
 
-export interface Property {
-    id: string;
-    name: string;
-    type: string;
-    address: string;
-    price: number;
-    level: number;
-    createdAt: string;
-    startDate?: string | null;
-    endDate?: string | null;
-    tenantId?: string | null;
-    tenantFullName?: string | null;
-}
-
-export interface PropertyUpsertPayload {
-    name: string;
-    type: string;
-    address: string;
-    price: number;
-    level: number;
-    tenantId?: string | null;
-    startDate?: string | null;
-    endDate?: string | null;
-}
-
-export interface PropertyDailyStats {
-    date: string;
-    activeLeaseCount: number;
-    accumulatedStartedLeaseCount: number;
-}
-
-export interface PropertyDailyStatsQuery {
-    startDate?: string;
-    endDate?: string;
-}
-
-export interface PagedResponse<T> {
-    items: T[];
-    page: number;
-    pageSize: number;
-    totalCount: number;
-    totalPages: number;
-}
-
-export type PropertySortField = 'name' | 'type' | 'level';
 
 export const propertyService = {
     getAll: async (
@@ -53,22 +15,23 @@ export const propertyService = {
         pageSize = 20,
         sortBy: PropertySortField = 'name',
         sortDir: SortDirection = 'asc',
+        search = '',
         signal?: AbortSignal,
     ): Promise<PagedResponse<Property>> => {
-        const response = await apiClient.get('/properties', {
+        const response = await apiClient.get<PagedResponse<Property>>('/properties', {
             signal,
-            params: { page, pageSize, sortBy, sortDir },
+            params: { page, pageSize, sortBy, sortDir, search: search || undefined },
         });
         return response.data;
     },
 
-    getById: async (id: string): Promise<Property> => {
-        const response = await apiClient.get(`/properties/${id}`);
+    getById: async (id: string, signal?: AbortSignal): Promise<Property> => {
+        const response = await apiClient.get<Property>(`/properties/${id}`, { signal });
         return response.data;
     },
 
     add: async (property: PropertyUpsertPayload): Promise<Property> => {
-        const response = await apiClient.post('/properties', property);
+        const response = await apiClient.post<Property>('/properties', property);
         return response.data;
     },
 
@@ -76,7 +39,7 @@ export const propertyService = {
         query: PropertyDailyStatsQuery = {},
         signal?: AbortSignal,
     ): Promise<PropertyDailyStats[]> => {
-        const response = await apiClient.get('/properties/daily-stats', {
+        const response = await apiClient.get<PropertyDailyStats[]>('/properties/daily-stats', {
             signal,
             params: {
                 startDate: query.startDate || undefined,
@@ -87,7 +50,7 @@ export const propertyService = {
     },
 
     update: async (id: string, property: PropertyUpsertPayload): Promise<Property> => {
-        const response = await apiClient.put(`/properties/${id}`, property);
+        const response = await apiClient.put<Property>(`/properties/${id}`, property);
         return response.data;
     },
 

@@ -1,14 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { AddProperty } from './components/property-add.tsx';
 import { PropertyTable } from './components/property-table.tsx';
 
 export function PropertiesPage() {
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [showAddModal, setShowAddModal] = useState(false);
-
-    const handlePropertyAdded = useCallback(() => {
-        setRefreshTrigger((prev) => prev + 1);
-    }, []);
 
     return (
         <div className="container py-4">
@@ -19,11 +14,10 @@ export function PropertiesPage() {
                 </button>
             </div>
 
-            <PropertyTable key={refreshTrigger} />
+            <PropertyTable />
             <AddProperty
                 show={showAddModal}
                 onHide={() => setShowAddModal(false)}
-                onPropertyAdded={handlePropertyAdded}
             />
         </div>
     );

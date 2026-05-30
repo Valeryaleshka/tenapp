@@ -1,14 +1,14 @@
 import { type ChangeEvent, type FormEvent, useState } from 'react';
-import { propertyService, type PropertyUpsertPayload } from '../../../services/properties/property.service.ts';
+import { type PropertyUpsertPayload } from '../../../services/properties/property.interfaces.ts';
+import { useAddPropertyMutation } from '../../../services/properties/property.queries.ts';
 import { TenantAssignmentSelect } from './tenant-assignment-select.tsx';
 
 interface AddPropertyProps {
     show: boolean;
     onHide: () => void;
-    onPropertyAdded: () => void;
 }
 
-export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps) {
+export function AddProperty({ show, onHide }: AddPropertyProps) {
     const initialFormData: PropertyUpsertPayload = {
         name: '',
         type: '',
@@ -23,7 +23,8 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
     const [formData, setFormData] = useState<PropertyUpsertPayload>({
         ...initialFormData,
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const addPropertyMutation = useAddPropertyMutation();
+    const [error, setError] = useState<string | null>(null);
 
     const handleTextChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -39,21 +40,20 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
     };
 
     const submitAdd = async () => {
+        setError(null);
+
         try {
-            setIsSubmitting(true);
-            await propertyService.add(formData);
+            await addPropertyMutation.mutateAsync(formData);
             setFormData(initialFormData);
-            onPropertyAdded();
             onHide();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsSubmitting(false);
+        } catch {
+            setError('Could not add property. Please try again.');
         }
     };
 
     const handleCloseModal = () => {
         setFormData(initialFormData);
+        setError(null);
         onHide();
     };
 
@@ -76,6 +76,7 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                             <button type="button" className="btn-close" aria-label="Close" onClick={handleCloseModal} />
                         </div>
                         <div className="modal-body">
+                            {error && <div className="alert alert-danger">{error}</div>}
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
                                     <label htmlFor="property-name" className="form-label">Property Name</label>
@@ -175,11 +176,11 @@ export function AddProperty({ show, onHide, onPropertyAdded }: AddPropertyProps)
                             </form>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={handleCloseModal} disabled={isSubmitting}>
+                            <button type="button" className="btn btn-secondary" onClick={handleCloseModal} disabled={addPropertyMutation.isPending}>
                                 Cancel
                             </button>
-                            <button type="button" className="btn btn-primary" onClick={() => void submitAdd()} disabled={isSubmitting}>
-                                {isSubmitting ? 'Adding...' : 'Add Property'}
+                            <button type="button" className="btn btn-primary" onClick={() => void submitAdd()} disabled={addPropertyMutation.isPending}>
+                                {addPropertyMutation.isPending ? 'Adding...' : 'Add Property'}
                             </button>
                         </div>
                     </div>

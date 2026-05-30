@@ -1,15 +1,21 @@
-import { type ChangeEvent, useEffect, useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { propertyService, type Property, type PropertyUpsertPayload } from '../../services/properties/property.service.ts';
+import { type PropertyUpsertPayload } from '../../services/properties/property.interfaces.ts';
+import {
+    useDeletePropertyMutation,
+    usePropertyQuery,
+    useUpdatePropertyMutation,
+} from '../../services/properties/property.queries.ts';
 import { TenantAssignmentSelect } from './components/tenant-assignment-select.tsx';
 
 export function PropertyDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const [property, setProperty] = useState<Property | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const propertyQuery = usePropertyQuery(id);
+    const updatePropertyMutation = useUpdatePropertyMutation(id);
+    const deletePropertyMutation = useDeletePropertyMutation(id);
+    const [isDeleted, setIsDeleted] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<PropertyUpsertPayload>({
         name: '',
         type: '',
@@ -20,37 +26,24 @@ export function PropertyDetailPage() {
         startDate: null,
         endDate: null,
     });
+    const property = isDeleted ? null : propertyQuery.data;
 
-    useEffect(() => {
-        if (!id) {
+    const resetEditForm = () => {
+        if (!property) {
             return;
         }
 
-        const load = async () => {
-            try {
-                setIsLoading(true);
-                const propertyData = await propertyService.getById(id);
-                setProperty(propertyData);
-                setEditForm({
-                    name: propertyData.name,
-                    type: propertyData.type,
-                    address: propertyData.address,
-                    price: propertyData.price,
-                    level: propertyData.level,
-                    startDate: propertyData.startDate,
-                    endDate: propertyData.endDate,
-                    tenantId: propertyData.tenantId ?? null,
-                });
-            } catch (error) {
-                console.error('Failed to load property details:', error);
-                setProperty(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        void load();
-    }, [id]);
+        setEditForm({
+            name: property.name,
+            type: property.type,
+            address: property.address,
+            price: property.price,
+            level: property.level,
+            startDate: property.startDate,
+            endDate: property.endDate,
+            tenantId: property.tenantId ?? null,
+        });
+    };
 
     const handleEditChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = event.target;
@@ -70,31 +63,19 @@ export function PropertyDetailPage() {
             return;
         }
 
+        setError(null);
+
         try {
-            setIsSaving(true);
-            const updated = await propertyService.update(id, editForm);
-            setProperty(updated);
+            await updatePropertyMutation.mutateAsync(editForm);
             setShowEditModal(false);
-        } catch (error) {
-            console.error('Failed to update property:', error);
-        } finally {
-            setIsSaving(false);
+        } catch {
+            setError('Could not update property. Please try again.');
         }
     };
 
     const handleCloseEditModal = () => {
-        if (property) {
-            setEditForm({
-                name: property.name,
-                type: property.type,
-                address: property.address,
-                price: property.price,
-                level: property.level,
-                startDate: property.startDate,
-                endDate: property.endDate,
-                tenantId: property.tenantId ?? null,
-            });
-        }
+        resetEditForm();
+        setError(null);
         setShowEditModal(false);
     };
 
@@ -103,19 +84,18 @@ export function PropertyDetailPage() {
             return;
         }
 
+        setError(null);
+
         try {
-            setIsDeleting(true);
-            await propertyService.delete(id);
-            setProperty(null);
+            await deletePropertyMutation.mutateAsync();
+            setIsDeleted(true);
             setShowEditModal(false);
-        } catch (error) {
-            console.error('Failed to delete property:', error);
-        } finally {
-            setIsDeleting(false);
+        } catch {
+            setError('Could not delete property. Please try again.');
         }
     };
 
-    if (isLoading) {
+    if (propertyQuery.isLoading) {
         return (
             <div className="py-4">
                 <div className="spinner-border text-primary" role="status" aria-label="Loading property details" />
@@ -123,7 +103,7 @@ export function PropertyDetailPage() {
         );
     }
 
-    if (!property) {
+    if (propertyQuery.isError || !property) {
         return (
             <div className="py-4">
                 <div className="alert alert-warning">Property not found or has been deleted.</div>
@@ -138,7 +118,10 @@ export function PropertyDetailPage() {
                 <h1 className="h4 mb-0 page-title">Property Details</h1>
                 <div className="d-flex gap-2">
                     <Link to="/properties" className="btn btn-secondary">Back</Link>
-                    <button type="button" className="btn btn-primary" onClick={() => setShowEditModal(true)}>Edit</button>
+                    <button type="button" className="btn btn-primary" onClick={() => {
+                        resetEditForm();
+                        setShowEditModal(true);
+                    }}>Edit</button>
                 </div>
             </div>
 
@@ -173,6 +156,7 @@ export function PropertyDetailPage() {
                                     <button type="button" className="btn-close" aria-label="Close" onClick={handleCloseEditModal} />
                                 </div>
                                 <div className="modal-body">
+                                    {error && <div className="alert alert-danger">{error}</div>}
                                     <form>
                                         <div className="mb-3">
                                             <label htmlFor="edit-property-name" className="form-label">Name</label>
@@ -230,15 +214,15 @@ export function PropertyDetailPage() {
                                     </form>
                                 </div>
                                 <div className="modal-footer d-flex justify-content-between">
-                                    <button type="button" className="btn btn-danger" onClick={() => void handleDelete()} disabled={isSaving || isDeleting}>
-                                        {isDeleting ? 'Deleting...' : 'Delete'}
+                                    <button type="button" className="btn btn-danger" onClick={() => void handleDelete()} disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}>
+                                        {deletePropertyMutation.isPending ? 'Deleting...' : 'Delete'}
                                     </button>
                                     <div className="d-flex gap-2">
-                                        <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal} disabled={isSaving || isDeleting}>
+                                        <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal} disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}>
                                             Cancel
                                         </button>
-                                        <button type="button" className="btn btn-primary" onClick={() => void handleSave()} disabled={isSaving || isDeleting}>
-                                            {isSaving ? 'Saving...' : 'Save'}
+                                        <button type="button" className="btn btn-primary" onClick={() => void handleSave()} disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}>
+                                            {updatePropertyMutation.isPending ? 'Saving...' : 'Save'}
                                         </button>
                                     </div>
                                 </div>

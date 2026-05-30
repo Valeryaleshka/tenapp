@@ -47,12 +47,12 @@ const extractUser = (data: unknown): User | null => {
 
 export const authService = {
     async register(payload: RegisterPayload): Promise<User | null> {
-        const response = await apiClient.post('/auth/register', payload);
+        const response = await apiClient.post<unknown>('/auth/register', payload);
         return extractUser(response.data);
     },
 
     async login(payload: LoginPayload): Promise<User | null> {
-        const response = await apiClient.post('/auth/login', payload);
+        const response = await apiClient.post<unknown>('/auth/login', payload);
         return extractUser(response.data);
     },
 
@@ -65,7 +65,7 @@ export const authService = {
     },
 
     async me(): Promise<User> {
-        const response = await apiClient.get('/auth/me');
+        const response = await apiClient.get<unknown>('/auth/me');
         const user = extractUser(response.data);
 
         if (!user) {
@@ -76,7 +76,7 @@ export const authService = {
     },
 
     async updateAccount(payload: UpdateAccountPayload): Promise<User> {
-        const response = await apiClient.put('/auth/account', payload);
+        const response = await apiClient.put<unknown>('/auth/account', payload);
         const user = extractUser(response.data);
 
         if (!user) {

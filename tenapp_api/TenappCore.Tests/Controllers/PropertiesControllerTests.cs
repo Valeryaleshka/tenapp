@@ -38,6 +38,26 @@ public class PropertiesControllerTests
     }
 
     [Fact]
+    public async Task GetAll_FiltersByNameSearch()
+    {
+        await using var dbContext = TestHelpers.CreateDbContext();
+        var userId = Guid.NewGuid();
+        dbContext.Properties.AddRange(
+            CreateProperty(userId, "Alpha House"),
+            CreateProperty(userId, "Alpine Condo"),
+            CreateProperty(userId, "Beta House"),
+            CreateProperty(Guid.NewGuid(), "Alpha Other User"));
+        await dbContext.SaveChangesAsync();
+        var controller = new PropertiesController(dbContext, new FakeCurrentUserService(userId));
+
+        var result = await controller.GetAll(search: "alp");
+
+        var response = TestHelpers.ValueFromOk(result);
+        Assert.Equal(2, response.TotalCount);
+        Assert.Equal(["Alpha House", "Alpine Condo"], response.Items.Select(p => p.Name));
+    }
+
+    [Fact]
     public async Task GetById_ReturnsPropertyWithTenantName()
     {
         await using var dbContext = TestHelpers.CreateDbContext();
@@ -166,4 +186,3 @@ public class PropertiesControllerTests
         };
     }
 }
-
