@@ -1,4 +1,4 @@
-import { apiClient } from '../api/api-client.ts';
+import { ApiClient } from '../api/api-client.ts';
 import { type SortDirection } from '../sort/sort.service.ts';
 
 export interface Tenant {
@@ -64,7 +64,7 @@ export const tenantService = {
         sortDir: SortDirection = 'asc',
         signal?: AbortSignal,
     ): Promise<PagedResponse<Tenant>> => {
-        const response = await apiClient.get<PagedResponse<Tenant>>('/tenants', {
+        const response = await ApiClient.get<PagedResponse<Tenant>>('/tenants', {
             signal,
             params: { page, pageSize, sortBy, sortDir },
         });
@@ -72,17 +72,17 @@ export const tenantService = {
     },
 
     getById: async (id: string, signal?: AbortSignal): Promise<Tenant> => {
-        const response = await apiClient.get<Tenant>(`/tenants/${id}`, { signal });
+        const response = await ApiClient.get<Tenant>(`/tenants/${id}`, { signal });
         return response.data;
     },
 
     add: async (payload: CreateTenantPayload): Promise<Tenant> => {
-        const response = await apiClient.post<Tenant>('/tenants', payload);
+        const response = await ApiClient.post<Tenant>('/tenants', payload);
         return response.data;
     },
 
     getForSelect: async (query: TenantSelectQuery = {}, signal?: AbortSignal): Promise<TenantSelect[]> => {
-        const response = await apiClient.get<TenantSelect[]>('/tenants/select', {
+        const response = await ApiClient.get<TenantSelect[]>('/tenants/select', {
             signal,
             params: {
                 search: query.search || undefined,
@@ -94,7 +94,7 @@ export const tenantService = {
     },
 
     getDailyStats: async (query: TenantDailyStatsQuery = {}, signal?: AbortSignal): Promise<TenantDailyStats[]> => {
-        const response = await apiClient.get<TenantDailyStats[]>('/tenants/daily-stats', {
+        const response = await ApiClient.get<TenantDailyStats[]>('/tenants/daily-stats', {
             signal,
             params: {
                 startDate: query.startDate || undefined,
@@ -105,11 +105,11 @@ export const tenantService = {
     },
 
     update: async (id: string, payload: CreateTenantPayload): Promise<Tenant> => {
-        const response = await apiClient.put<Tenant>(`/tenants/${id}`, payload);
+        const response = await ApiClient.put<Tenant>(`/tenants/${id}`, payload);
         return response.data;
     },
 
     delete: async (id: string): Promise<void> => {
-        await apiClient.delete(`/tenants/${id}`);
+        await ApiClient.delete(`/tenants/${id}`);
     },
 };

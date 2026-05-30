@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import {useAuth} from "../../../common/hooks/useAuth.ts";
-import type {RegisterPayload} from "../../../services/auth/auth.service.ts";
+import type {RegisterPayload} from "../../../services/auth/authService.ts";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

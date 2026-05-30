@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link, useSearchParams } from 'react-router-dom';
-import { authService, type ResetPasswordPayload } from '../../../services/auth/auth.service.ts';
+import { AuthService, type ResetPasswordPayload } from '../../../services/auth/authService.ts';
 
 type ResetPasswordFormValues = Omit<ResetPasswordPayload, 'token'>;
 
@@ -33,7 +33,7 @@ export function ResetPasswordPage() {
         }
 
         try {
-            await authService.resetPassword({
+            await AuthService.resetPassword({
                 email: email.trim(),
                 token,
                 newPassword,

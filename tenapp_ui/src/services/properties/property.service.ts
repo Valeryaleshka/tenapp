@@ -1,4 +1,4 @@
-import { apiClient } from '../api/api-client.ts';
+import { ApiClient } from '../api/api-client.ts';
 import { type SortDirection } from '../sort/sort.service.ts';
 import type {
     PagedResponse,
@@ -18,7 +18,7 @@ export const propertyService = {
         search = '',
         signal?: AbortSignal,
     ): Promise<PagedResponse<Property>> => {
-        const response = await apiClient.get<PagedResponse<Property>>('/properties', {
+        const response = await ApiClient.get<PagedResponse<Property>>('/properties', {
             signal,
             params: { page, pageSize, sortBy, sortDir, search: search || undefined },
         });
@@ -26,12 +26,12 @@ export const propertyService = {
     },
 
     getById: async (id: string, signal?: AbortSignal): Promise<Property> => {
-        const response = await apiClient.get<Property>(`/properties/${id}`, { signal });
+        const response = await ApiClient.get<Property>(`/properties/${id}`, { signal });
         return response.data;
     },
 
     add: async (property: PropertyUpsertPayload): Promise<Property> => {
-        const response = await apiClient.post<Property>('/properties', property);
+        const response = await ApiClient.post<Property>('/properties', property);
         return response.data;
     },
 
@@ -39,7 +39,7 @@ export const propertyService = {
         query: PropertyDailyStatsQuery = {},
         signal?: AbortSignal,
     ): Promise<PropertyDailyStats[]> => {
-        const response = await apiClient.get<PropertyDailyStats[]>('/properties/daily-stats', {
+        const response = await ApiClient.get<PropertyDailyStats[]>('/properties/daily-stats', {
             signal,
             params: {
                 startDate: query.startDate || undefined,
@@ -50,11 +50,11 @@ export const propertyService = {
     },
 
     update: async (id: string, property: PropertyUpsertPayload): Promise<Property> => {
-        const response = await apiClient.put<Property>(`/properties/${id}`, property);
+        const response = await ApiClient.put<Property>(`/properties/${id}`, property);
         return response.data;
     },
 
     delete: async (id: string): Promise<void> => {
-        await apiClient.delete(`/properties/${id}`);
+        await ApiClient.delete(`/properties/${id}`);
     },
 };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { Link } from 'react-router-dom';
-import { authService } from '../../../services/auth/auth.service.ts';
+import { AuthService } from '../../../services/auth/authService.ts';
 
 interface ForgotPasswordFormValues {
     email: string;
@@ -27,7 +27,7 @@ export function ForgotPasswordPage() {
         setSuccess(null);
 
         try {
-            await authService.forgotPassword(email.trim());
+            await AuthService.forgotPassword(email.trim());
             setSuccess('If the email exists, reset instructions were sent.');
         } catch {
             setError('Failed to request password reset.');

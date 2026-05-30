@@ -1,19 +1,10 @@
-type QueryParams = Record<string, string | number | boolean | null | undefined>;
-
-interface ApiRequestOptions {
-    params?: QueryParams;
-    signal?: AbortSignal;
-}
-
-interface ApiResponse<T> {
-    data: T;
-}
-
-interface ApiRequestConfig extends ApiRequestOptions {
-    body?: unknown;
-    method: 'DELETE' | 'GET' | 'POST' | 'PUT';
-    retry?: boolean;
-}
+import { JSON_HEADERS } from './api-client.constants.ts';
+import type {
+    ApiRequestConfig,
+    ApiRequestOptions,
+    ApiResponse,
+} from './api-client.interfaces.ts';
+import {buildUrl, isExcludedFromRefresh, isRefreshEndpoint, parseResponse} from "./api-client.helpers.ts";
 
 export class ApiError extends Error {
     readonly data: unknown;
@@ -30,54 +21,6 @@ export class ApiError extends Error {
         this.status = status;
     }
 }
-
-const API_BASE_URL = '/api';
-const JSON_HEADERS = {
-    'Content-Type': 'application/json',
-};
-
-const isRefreshEndpoint = (url: string): boolean => {
-    return url.includes('/auth/refresh');
-};
-
-const isExcludedFromRefresh = (url: string): boolean => {
-    return (
-        url.includes('/auth/me') ||
-        url.includes('/auth/login') ||
-        url.includes('/auth/register') ||
-        url.includes('/auth/logout') ||
-        url.includes('/auth/forgot-password') ||
-        url.includes('/auth/reset-password')
-    );
-};
-
-const buildUrl = (path: string, params?: QueryParams): string => {
-    const searchParams = new URLSearchParams();
-
-    Object.entries(params ?? {}).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
-            searchParams.set(key, String(value));
-        }
-    });
-
-    const queryString = searchParams.toString();
-    return `${API_BASE_URL}${path}${queryString ? `?${queryString}` : ''}`;
-};
-
-const parseResponse = async (response: Response): Promise<unknown> => {
-    if (response.status === 204) {
-        return undefined;
-    }
-
-    const text = await response.text();
-
-    if (!text) {
-        return undefined;
-    }
-
-    const contentType = response.headers.get('content-type') ?? '';
-    return contentType.includes('application/json') ? JSON.parse(text) : text;
-};
 
 let refreshPromise: Promise<void> | null = null;
 
@@ -122,7 +65,7 @@ const request = async <T>(path: string, config: ApiRequestConfig): Promise<ApiRe
     throw new ApiError(response.statusText || 'Request failed', response.status, data);
 };
 
-export const apiClient = {
+export const ApiClient = {
     get<T = unknown>(path: string, options: ApiRequestOptions = {}): Promise<ApiResponse<T>> {
         return request<T>(path, { ...options, method: 'GET' });
     },

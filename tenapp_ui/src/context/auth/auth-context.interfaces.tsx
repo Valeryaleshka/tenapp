@@ -1,4 +1,4 @@
-import type {LoginPayload, RegisterPayload, UpdateAccountPayload, User} from "../../services/auth/auth.service.ts";
+import type {LoginPayload, RegisterPayload, UpdateAccountPayload, User} from "../../services/auth/authService.ts";
 
 export interface AuthContextValue {
     user: User | null;

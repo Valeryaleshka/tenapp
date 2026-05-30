@@ -127,6 +127,10 @@
     border-color: var(--app-accent-strong);
 }
 
+.app-account-button.dropdown-toggle::after {
+    display: none;
+}
+
 .page-toolbar {
     padding: 1rem 1.25rem;
     border-radius: 16px;

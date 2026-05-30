@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AuthContext } from './auth-context.tsx';
-import { authService, type LoginPayload, type RegisterPayload, type UpdateAccountPayload, type User } from '../../services/auth/auth.service.ts';
+import { AuthService, type LoginPayload, type RegisterPayload, type UpdateAccountPayload, type User } from '../../services/auth/authService.ts';
 import type { AuthContextValue } from './auth-context.interfaces.tsx';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -11,12 +11,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const bootstrap = async () => {
             try {
                 try {
-                    const currentUser = await authService.me();
+                    const currentUser = await AuthService.me();
                     setUser(currentUser);
                     return;
                 } catch {
-                    await authService.refresh();
-                    const currentUser = await authService.me();
+                    await AuthService.refresh();
+                    const currentUser = await AuthService.me();
                     setUser(currentUser);
                 }
             } catch {
@@ -30,26 +30,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = async (payload: LoginPayload) => {
-        const loginUser = await authService.login(payload);
+        const loginUser = await AuthService.login(payload);
         if (loginUser) return setUser(loginUser);
 
-        setUser(await authService.me());
+        setUser(await AuthService.me());
     };
 
     const register = async (payload: RegisterPayload) => {
-        const registeredUser = await authService.register(payload);
+        const registeredUser = await AuthService.register(payload);
         if (registeredUser) return setUser(registeredUser);
 
-        setUser(await authService.me());
+        setUser(await AuthService.me());
     };
 
     const logout = async () => {
-        await authService.logout();
+        await AuthService.logout();
         setUser(null);
     };
 
     const updateAccount = async (payload: UpdateAccountPayload) => {
-        const updatedUser = await authService.updateAccount(payload);
+        const updatedUser = await AuthService.updateAccount(payload);
         setUser(updatedUser);
         return updatedUser;
     };

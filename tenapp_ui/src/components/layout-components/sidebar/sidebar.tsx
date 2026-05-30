@@ -1,17 +1,8 @@
 
-import {NavLink, useNavigate} from "react-router-dom";
+import {NavLink} from "react-router-dom";
 import {navigationLinks} from "./navigation-links.ts";
-import {useAuth} from "../../../common/hooks/useAuth.ts";
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
-    const { logout } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logout();
-        navigate('/login', { replace: true });
-    };
-
     const navClassName = ({ isActive }: { isActive: boolean }) =>
         `app-menu-link ${isActive ? 'active' : ''}`;
 
@@ -30,11 +21,6 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
                 })}
             </nav>
 
-            <div className="mt-auto p-3 border-top">
-                <button type="button" className="btn btn-outline-danger w-100" onClick={() => void handleLogout()}>
-                    Logout
-                </button>
-            </div>
         </div>
     );
 }
