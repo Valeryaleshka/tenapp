@@ -52,9 +52,9 @@ export function PropertyTable() {
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 mb-3">
         <div>
-          <div className="input-group mb-3">
+          <div className="input-group">
             <input
               type="text"
               className="form-control"
@@ -102,7 +102,7 @@ export function PropertyTable() {
       )}
 
       <LoadingWrapper isLoading={propertiesQuery.isFetching}>
-        <table className="table table-striped table-bordered table-hover align-middle">
+        <table className="table table-bordered table-hover align-middle">
           <thead>
             <tr>
               <th>
