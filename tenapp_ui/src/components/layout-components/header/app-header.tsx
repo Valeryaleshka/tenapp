@@ -25,13 +25,12 @@ export function AppHeader({ action, settingsInitial }: AppHeaderProps) {
       <div className="d-flex align-items-center gap-2">
         <button
           type="button"
-          className="btn btn-outline-secondary d-lg-none"
+          className="btn btn-outline-secondary border-0 d-lg-none"
           onClick={() => action()}
           aria-label="Open menu"
         >
           &#9776;
         </button>
-        <div className="fw-semibold d-lg-none">Tenapp</div>
       </div>
       <div className="d-flex align-items-center gap-3">
         <Dropdown align="end">

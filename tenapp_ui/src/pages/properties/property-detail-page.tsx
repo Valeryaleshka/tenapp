@@ -122,7 +122,7 @@ export function PropertyDetailPage() {
 
   return (
     <div className="py-4 container">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-4">
+      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Property Details</h1>
         <div className="d-flex gap-2">
           <Link to="/properties" className="btn btn-secondary">

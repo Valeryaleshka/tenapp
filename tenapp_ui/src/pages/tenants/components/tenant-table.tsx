@@ -67,7 +67,7 @@ export function TenantTable() {
       )}
 
       <LoadingWrapper isLoading={tenantsQuery.isFetching}>
-        <table className="table table-striped table-bordered table-hover mt-4 align-middle">
+        <table className="table table-bordered table-hover align-middle">
           <thead>
             <tr>
               <th>

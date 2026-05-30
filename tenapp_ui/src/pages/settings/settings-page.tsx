@@ -103,7 +103,7 @@ export function SettingsPage() {
 
   return (
     <div className="container py-4">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-4">
+      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Settings</h1>
       </div>
 
