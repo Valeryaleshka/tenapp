@@ -1,4 +1,4 @@
 export interface AppHeaderProps {
-    action: () => void;
-    settingsInitial: string;
+  action: () => void
+  settingsInitial: string
 }

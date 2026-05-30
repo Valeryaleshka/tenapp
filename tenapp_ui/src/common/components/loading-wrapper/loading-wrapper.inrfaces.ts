@@ -1,6 +1,6 @@
-import type {ReactNode} from "react";
+import type { ReactNode } from 'react'
 
 export interface LoadingWrapperProps {
-    isLoading: boolean;
-    children: ReactNode;
+  isLoading: boolean
+  children: ReactNode
 }
