@@ -21,7 +21,6 @@ Frontend application for authentication and property management.
 npm install
 ```
 
-
 ## Run Locally
 
 ```powershell

@@ -1,50 +1,52 @@
-# Codex Instructions
+# AGENTS.md
 
-These instructions apply to the whole monorepo (`tenapp_api` and `tenapp_ui`).
+Applies to the whole monorepo: `tenapp_api` and `tenapp_ui`.
 
-## General
+## Core Rules
+- Make small, focused changes. Preserve existing behavior, API contracts, auth, and UX unless asked.
+- Deliver working code, not only a plan. Use reasonable assumptions; ask only when blocked.
+- Follow existing patterns before adding new abstractions. Reuse helpers/services instead of duplicating logic.
+- Keep type safety. Avoid `any`, unsafe casts, broad `try/catch`, silent failures, and swallowed errors.
+- Never hardcode secrets or log passwords, tokens, cookies, API keys, or auth headers.
+- Do not use destructive git commands or revert user changes unless explicitly requested.
 
-- Prefer small, focused changes over large rewrites.
-- Keep code readable and explicit.
-- Do not break existing API contracts unless explicitly requested.
-- Add or update tests when behavior changes.
-- Keep security in mind for auth, validation, and secrets.
+## Tools & Workflow
+- Prefer dedicated tools over shell commands. Use `rg`/`rg --files` for search when available.
+- Read enough context before editing. Batch related edits; avoid repeated micro-patches.
+- Use `apply_patch` for manual file edits when practical.
+- Add/update tests when behavior changes. Run targeted checks first, then broader checks when needed.
+- Final response: concise summary, changed paths, verification run or skipped.
 
-## React / Frontend Best Practices (`tenapp_ui`)
+## Backend: `tenapp_api`
+- Keep controllers thin; put business rules in services.
+- Validate DTOs and return meaningful HTTP status codes / existing error style.
+- Scope protected data by authenticated user; authorize endpoints and re-check ownership in queries.
+- Use async EF Core with `CancellationToken` where practical; use `AsNoTracking()` for read-only queries.
+- Prefer projection DTOs over returning EF entities. Avoid lazy loading and accidental N+1 queries.
+- Keep `AppDbContext` config, migrations, model snapshot, Swagger, and frontend DTOs in sync.
+- Use DI, typed options, `HttpClientFactory`, structured logging, and stable `camelCase` JSON responses.
+- Prefer `DateTimeOffset` for external timestamps; use `TimeProvider` where testability matters.
 
-- Use TypeScript strict typing; avoid `any`.
-- Keep UI components presentational when possible; move API logic to services.
-- Reuse existing service modules (`src/services/*`) for HTTP calls.
-- Handle async errors in UI and avoid unhandled promise rejections.
-- Keep forms controlled and validate user input before sending to API.
-- Avoid duplicated state; derive state when possible.
-- Use `useEffect` dependencies correctly and avoid unnecessary re-renders.
-- Prefer composition and small reusable components over large monolithic ones.
-- Keep routes/pages thin and move reusable logic to hooks/services.
-- Use consistent naming for DTOs/interfaces matching backend payloads.
+## Frontend: `tenapp_ui`
+- Use strict TypeScript. Model API payloads with explicit interfaces matching backend JSON.
+- Keep pages/routes thin. Put UI in components, logic in hooks, API calls in `src/services/*`.
+- Use React Query by default for server data. Avoid one-off `fetch`/axios calls in components.
+- Keep components presentational when possible. Derive state instead of duplicating props/router/store/form data.
+- Treat `useEffect` as an escape hatch. Use correct deps, cleanup, cancellation/stale-response guards.
+- Use Redux Toolkit only for shared cross-route/app state; keep local form/modal state local.
+- Preserve Bootstrap / React Bootstrap patterns unless the task changes the design system.
+- Build accessible, responsive UI: semantic HTML, labels, keyboard support, focus states, no overflow.
+- Avoid unsafe HTML injection; sanitize and document if `dangerouslySetInnerHTML` is unavoidable.
+- Use `VITE_*` env vars for environment-specific values; never hardcode deployment URLs/secrets.
 
-## .NET / Backend Best Practices (`tenapp_api`)
+## React File Structure
+- Keep component files small. Move reusable helpers, interfaces, constants, API logic, and large transformations out of `.tsx`.
+- Local feature files: `Component.tsx`, `Component.interfaces.ts`, `Component.constants.ts`, `Component.helpers.ts`, `Component.test.tsx`.
+- Shared files: `src/types/*`, `src/constants/*`, `src/utils/*`, `src/hooks/*`, `src/services/*`.
+- Use PascalCase for components, camelCase for helpers, and UPPER_SNAKE_CASE for constant objects.
+- Prefer stable keys from data IDs; never use array indexes for mutable, filtered, sorted, or editable lists.
 
-- Keep controllers thin; put business rules in services when logic grows.
-- Validate input DTOs and return meaningful HTTP status codes.
-- Scope data access by current authenticated user for all protected resources.
-- Use async EF Core methods (`ToListAsync`, `FirstOrDefaultAsync`, etc.).
-- Use `AsNoTracking()` for read-only queries.
-- Keep entity configuration in `AppDbContext` consistent (constraints, indexes, lengths).
-- Add migrations for schema changes and keep model snapshot up to date.
-- Never hardcode secrets; use config files/env vars and local overrides.
-- Preserve JWT/cookie auth behavior unless explicitly asked to change it.
-- Log failures with actionable context, but never log sensitive tokens/passwords.
-
-## API Contract Discipline
-
-- If backend DTO changes, update frontend service types in the same task.
-- Keep naming stable (`camelCase` in JSON responses expected by UI).
-- For breaking API changes, document required frontend updates in PR/summary.
-
-## Definition of Done
-
-- Code compiles (`dotnet build`, TypeScript build/check where possible).
-- New endpoints are reachable and consistent with auth requirements.
-- Frontend interactions for changed flows are wired end-to-end.
-- Migration files are generated for DB schema changes.
+## Checks
+- Backend: run `dotnet build` and relevant tests after backend changes when feasible.
+- Frontend: run `npm run format`, `npm run lint`, `npm run build`, and relevant tests after frontend changes when feasible.
+- If checks are skipped or fail for environment reasons, state exactly what was skipped/failed and why.

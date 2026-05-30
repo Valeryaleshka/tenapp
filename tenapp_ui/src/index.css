@@ -3,11 +3,11 @@
 html,
 body,
 #root {
-    min-height: 100%;
+  min-height: 100%;
 }
 
 body {
-    margin: 0;
-    font-family: 'Manrope', sans-serif;
-    color: #1f2a37;
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  color: #1f2a37;
 }

@@ -1,11 +1,12 @@
-import type {NavigationLink} from "../../../common/interfaces/links.ts";
+import type { NavigationLink } from '../../../common/interfaces/links.ts'
 
-export const navigationLinks: NavigationLink[] =
-    [{
-    path: "/properties",
-        label: "Properties"
-    }, {
-    path: "/tenants",
-        label: "Tenants"
-    }
-];
+export const navigationLinks: NavigationLink[] = [
+  {
+    path: '/properties',
+    label: 'Properties',
+  },
+  {
+    path: '/tenants',
+    label: 'Tenants',
+  },
+]
