@@ -4,6 +4,7 @@ import { AppSidebar } from '../sidebar/sidebar.tsx'
 import { AppHeader } from '../header/app-header.tsx'
 import { Offcanvas } from 'react-bootstrap'
 import { useAuth } from '../../../common/hooks/useAuth.ts'
+import './app-layout.css'
 
 export function AppLayout() {
   const { user } = useAuth()

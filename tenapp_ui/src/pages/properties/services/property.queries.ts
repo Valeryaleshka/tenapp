@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type SortDirection } from '../sort/sort.service.ts'
+import { type SortDirection } from '../../../common/services/sort/sort.service.ts'
 import { propertyService } from './property.service.ts'
 import type { PropertySortField, PropertyUpsertPayload } from './property.interfaces.ts'
 

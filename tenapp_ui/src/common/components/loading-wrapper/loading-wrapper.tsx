@@ -1,3 +1,4 @@
+import { Spinner } from 'react-bootstrap'
 import type { LoadingWrapperProps } from './loading-wrapper.inrfaces.ts'
 
 export function LoadingWrapper({ isLoading, children }: LoadingWrapperProps) {
@@ -12,7 +13,7 @@ export function LoadingWrapper({ isLoading, children }: LoadingWrapperProps) {
           aria-live="polite"
           aria-label="Loading table data"
         >
-          <div className="spinner-border text-primary" role="status" />
+          <Spinner animation="border" variant="primary" role="status" />
         </div>
       )}
     </div>

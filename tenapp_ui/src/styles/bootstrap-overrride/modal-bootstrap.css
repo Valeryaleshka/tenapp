@@ -1,0 +1,4 @@
+.modal-content {
+    border-radius: 14px;
+    border: 1px solid var(--app-border);
+}

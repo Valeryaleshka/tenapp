@@ -1,12 +1,14 @@
 import { type ChangeEvent, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Alert, Button, Card, Container, Form, Modal, Spinner } from 'react-bootstrap'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   useDeleteTenantMutation,
   useTenantQuery,
   useUpdateTenantMutation,
-} from '../../services/tenants/tenant.queries.ts'
+} from './services/tenant.queries.ts'
 
 export function TenantDetailPage() {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const tenantQuery = useTenantQuery(id)
   const updateTenantMutation = useUpdateTenantMutation(id)
@@ -76,11 +78,18 @@ export function TenantDetailPage() {
     }
   }
 
+  const handleCloseEditModal = () => {
+    resetEditForm()
+    setError(null)
+    setShowEditModal(false)
+  }
+
   if (tenantQuery.isLoading) {
     return (
       <div className="py-4">
-        <div
-          className="spinner-border text-primary"
+        <Spinner
+          animation="border"
+          variant="primary"
           role="status"
           aria-label="Loading tenant details"
         />
@@ -91,37 +100,36 @@ export function TenantDetailPage() {
   if (tenantQuery.isError || !tenant) {
     return (
       <div className="py-4">
-        <div className="alert alert-warning">Tenant not found or has been deleted.</div>
-        <Link to="/tenants" className="btn btn-secondary">
+        <Alert variant="warning">Tenant not found or has been deleted.</Alert>
+        <Button variant="secondary" onClick={() => navigate('/tenants')}>
           Back to Tenants
-        </Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="py-4 container">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
+    <Container className="py-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Tenant Details</h1>
         <div className="d-flex gap-2">
-          <Link to="/tenants" className="btn btn-secondary">
+          <Button variant="secondary" onClick={() => navigate('/tenants')}>
             Back
-          </Link>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
             onClick={() => {
               resetEditForm()
               setShowEditModal(true)
             }}
           >
             Edit
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-body">
+      <Card>
+        <Card.Body>
           <div>
             <strong>First Name:</strong> {tenant.firstName}
           </div>
@@ -150,129 +158,83 @@ export function TenantDetailPage() {
                   </span>
                 ))}
           </div>
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
 
-      {showEditModal && (
-        <>
-          <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Edit Tenant</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    aria-label="Close"
-                    onClick={() => {
-                      resetEditForm()
-                      setError(null)
-                      setShowEditModal(false)
-                    }}
-                  />
-                </div>
-                <div className="modal-body">
-                  {error && <div className="alert alert-danger">{error}</div>}
-                  <form>
-                    <div className="mb-3">
-                      <label htmlFor="edit-tenant-firstName" className="form-label">
-                        First Name
-                      </label>
-                      <input
-                        id="edit-tenant-firstName"
-                        className="form-control"
-                        type="text"
-                        name="firstName"
-                        value={editForm.firstName}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-tenant-lastName" className="form-label">
-                        Last Name
-                      </label>
-                      <input
-                        id="edit-tenant-lastName"
-                        className="form-control"
-                        type="text"
-                        name="lastName"
-                        value={editForm.lastName}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-tenant-phoneNumber" className="form-label">
-                        Phone Number
-                      </label>
-                      <input
-                        id="edit-tenant-phoneNumber"
-                        className="form-control"
-                        type="text"
-                        name="phoneNumber"
-                        value={editForm.phoneNumber}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="edit-tenant-email" className="form-label">
-                        Email
-                      </label>
-                      <input
-                        id="edit-tenant-email"
-                        className="form-control"
-                        type="email"
-                        name="email"
-                        value={editForm.email}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                  </form>
-                </div>
-                <div className="modal-footer d-flex justify-content-between">
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => void handleDelete()}
-                    disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
-                  >
-                    {deleteTenantMutation.isPending ? 'Deleting...' : 'Delete'}
-                  </button>
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => {
-                        resetEditForm()
-                        setError(null)
-                        setShowEditModal(false)
-                      }}
-                      disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => void handleSave()}
-                      disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
-                    >
-                      {updateTenantMutation.isPending ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Tenant</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form>
+            <Form.Group className="mb-3" controlId="edit-tenant-firstName">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control
+                id="edit-tenant-firstName"
+                type="text"
+                name="firstName"
+                value={editForm.firstName}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-tenant-lastName">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control
+                id="edit-tenant-lastName"
+                type="text"
+                name="lastName"
+                value={editForm.lastName}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-tenant-phoneNumber">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
+                id="edit-tenant-phoneNumber"
+                type="text"
+                name="phoneNumber"
+                value={editForm.phoneNumber}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group controlId="edit-tenant-email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                id="edit-tenant-email"
+                type="email"
+                name="email"
+                value={editForm.email}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-between">
+          <Button
+            variant="danger"
+            onClick={() => void handleDelete()}
+            disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
+          >
+            {deleteTenantMutation.isPending ? 'Deleting...' : 'Delete'}
+          </Button>
+          <div className="d-flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleCloseEditModal}
+              disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleSave()}
+              disabled={updateTenantMutation.isPending || deleteTenantMutation.isPending}
+            >
+              {updateTenantMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
           </div>
-          <div
-            className="modal-backdrop fade show"
-            onClick={() => {
-              resetEditForm()
-              setError(null)
-              setShowEditModal(false)
-            }}
-          />
-        </>
-      )}
-    </div>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   )
 }

@@ -1,4 +1,4 @@
-import { ApiClient } from '../api/api-client.ts'
+import { ApiClient } from '../../../common/services/api/api-client.ts'
 import { extractUser } from './auth.helpers.ts'
 import type {
   LoginPayload,

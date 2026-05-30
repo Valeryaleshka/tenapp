@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import AsyncSelect from 'react-select/async'
 import { type SingleValue } from 'react-select'
-import { tenantService, type TenantSelect } from '../../../services/tenants/tenant.service.ts'
+import { tenantService, type TenantSelect } from '../../tenants/services/tenant.service.ts'
 
 interface TenantAssignmentSelectProps {
   id: string

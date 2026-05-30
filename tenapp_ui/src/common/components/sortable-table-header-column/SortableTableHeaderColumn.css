@@ -1,0 +1,40 @@
+.app-sort-header {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+}
+
+.app-sort-header.active {
+  color: var(--app-accent-strong);
+}
+
+.app-sort-arrows {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 0.75;
+}
+
+.app-sort-arrow {
+  opacity: 0.25;
+  font-size: 0.58rem;
+}
+
+.app-sort-arrow-down {
+  transform: rotate(180deg);
+  display: inline-block;
+}
+
+.app-sort-arrow.active {
+  opacity: 1;
+  color: var(--app-accent);
+}

@@ -1,16 +1,18 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { Alert, Button, Form, Table } from 'react-bootstrap'
 import { AppPagination } from '../../../common/components/pagination/app-pagination.tsx'
 import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx'
-import { type TenantSortField } from '../../../services/tenants/tenant.service.ts'
+import { SortableTableHeaderColumn } from '../../../common/components/sortable-table-header-column/SortableTableHeaderColumn.tsx'
+import { type TenantSortField } from '../services/tenant.service.ts'
 import {
   getNextSortDirection,
-  getSortArrowClasses,
   type SortDirection,
-} from '../../../services/sort/sort.service.ts'
-import { useTenantsQuery } from '../../../services/tenants/tenant.queries.ts'
+} from '../../../common/services/sort/sort.service.ts'
+import { useTenantsQuery } from '../services/tenant.queries.ts'
 
 export function TenantTable() {
+  const navigate = useNavigate()
   const pageSize = 20
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState<TenantSortField>('firstName')
@@ -34,8 +36,7 @@ export function TenantTable() {
   return (
     <>
       <div className="d-flex justify-content-end align-items-center gap-2 mb-3">
-        <select
-          className="form-select"
+        <Form.Select
           aria-label="Sort tenants by field"
           value={sortBy}
           onChange={(event) => {
@@ -46,9 +47,8 @@ export function TenantTable() {
         >
           <option value="firstName">Sort: First Name</option>
           <option value="lastName">Sort: Last Name</option>
-        </select>
-        <select
-          className="form-select"
+        </Form.Select>
+        <Form.Select
           aria-label="Sort tenants direction"
           value={sortDir}
           onChange={(event) => {
@@ -59,54 +59,34 @@ export function TenantTable() {
         >
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
-        </select>
+        </Form.Select>
       </div>
 
       {tenantsQuery.isError && (
-        <div className="alert alert-danger">Could not load tenants. Please try again.</div>
+        <Alert variant="danger">Could not load tenants. Please try again.</Alert>
       )}
 
       <LoadingWrapper isLoading={tenantsQuery.isFetching}>
-        <table className="table table-bordered table-hover align-middle">
+        <Table bordered hover className="align-middle">
           <thead>
             <tr>
               <th>
-                <button
-                  type="button"
-                  className={`app-sort-header ${sortBy === 'firstName' ? 'active' : ''}`}
-                  onClick={() => applySort('firstName')}
-                >
-                  <span>First Name</span>
-                  <span className="app-sort-arrows" aria-hidden>
-                    <span className={getSortArrowClasses(sortBy === 'firstName', sortDir, 'asc')}>
-                      ^
-                    </span>
-                    <span
-                      className={`${getSortArrowClasses(sortBy === 'firstName', sortDir, 'desc')} app-sort-arrow-down`}
-                    >
-                      ^
-                    </span>
-                  </span>
-                </button>
+                <SortableTableHeaderColumn
+                  activeField={sortBy}
+                  direction={sortDir}
+                  field="firstName"
+                  label="First Name"
+                  onSort={applySort}
+                />
               </th>
               <th>
-                <button
-                  type="button"
-                  className={`app-sort-header ${sortBy === 'lastName' ? 'active' : ''}`}
-                  onClick={() => applySort('lastName')}
-                >
-                  <span>Last Name</span>
-                  <span className="app-sort-arrows" aria-hidden>
-                    <span className={getSortArrowClasses(sortBy === 'lastName', sortDir, 'asc')}>
-                      ^
-                    </span>
-                    <span
-                      className={`${getSortArrowClasses(sortBy === 'lastName', sortDir, 'desc')} app-sort-arrow-down`}
-                    >
-                      ^
-                    </span>
-                  </span>
-                </button>
+                <SortableTableHeaderColumn
+                  activeField={sortBy}
+                  direction={sortDir}
+                  field="lastName"
+                  label="Last Name"
+                  onSort={applySort}
+                />
               </th>
               <th>Phone</th>
               <th className="d-none d-md-table-cell">Email</th>
@@ -132,14 +112,12 @@ export function TenantTable() {
                   {new Date(tenant.createdAt).toLocaleDateString()}
                 </td>
                 <td className="table-action-col">
-                  <Link to={`/tenants/${tenant.id}`} className="btn btn-primary">
-                    Details
-                  </Link>
+                  <Button onClick={() => navigate(`/tenants/${tenant.id}`)}>Details</Button>
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       </LoadingWrapper>
 
       <div className="d-flex justify-content-between align-items-center">

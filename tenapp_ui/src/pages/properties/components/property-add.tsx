@@ -1,6 +1,7 @@
 import { type ChangeEvent, type FormEvent, useState } from 'react'
-import { type PropertyUpsertPayload } from '../../../services/properties/property.interfaces.ts'
-import { useAddPropertyMutation } from '../../../services/properties/property.queries.ts'
+import { Alert, Button, Form, Modal } from 'react-bootstrap'
+import { type PropertyUpsertPayload } from '../services/property.interfaces.ts'
+import { useAddPropertyMutation } from '../services/property.queries.ts'
 import { TenantAssignmentSelect } from './tenant-assignment-select.tsx'
 
 interface AddPropertyProps {
@@ -64,162 +65,116 @@ export function AddProperty({ show, onHide }: AddPropertyProps) {
     await submitAdd()
   }
 
-  if (!show) {
-    return null
-  }
-
   return (
-    <>
-      <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Add Property</h5>
-              <button
-                type="button"
-                className="btn-close"
-                aria-label="Close"
-                onClick={handleCloseModal}
+    <Modal show={show} onHide={handleCloseModal} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Add Property</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {error && <Alert variant="danger">{error}</Alert>}
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3" controlId="property-name">
+            <Form.Label>Property Name</Form.Label>
+            <Form.Control
+              id="property-name"
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleTextChange}
+              placeholder="Enter property name"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="property-type">
+            <Form.Label>Type</Form.Label>
+            <Form.Control
+              id="property-type"
+              type="text"
+              name="type"
+              value={formData.type}
+              onChange={handleTextChange}
+              placeholder="Enter property type"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="property-address">
+            <Form.Label>Address</Form.Label>
+            <Form.Control
+              id="property-address"
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleTextChange}
+              placeholder="Enter property address"
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="property-price">
+            <Form.Label>Price</Form.Label>
+            <Form.Control
+              id="property-price"
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleTextChange}
+              min={0}
+              step="0.01"
+            />
+          </Form.Group>
+          <Form.Group className="mb-0" controlId="property-level">
+            <Form.Label>Level</Form.Label>
+            <Form.Control
+              id="property-level"
+              type="number"
+              name="level"
+              value={formData.level}
+              onChange={handleTextChange}
+              min={1}
+              max={100}
+            />
+          </Form.Group>
+          <Form.Group className="mb-0" controlId="start-date">
+            <Form.Label>Start Date</Form.Label>
+            <Form.Control
+              type="date"
+              id="start-date"
+              name="startDate"
+              value={formData.startDate ?? ''}
+              onChange={handleTextChange}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-0" controlId="end-date">
+            <Form.Label>End Date</Form.Label>
+            <Form.Control
+              type="date"
+              id="end-date"
+              name="endDate"
+              value={formData.endDate ?? ''}
+              onChange={handleTextChange}
+            />
+          </Form.Group>
+          <Form.Group className="mb-0 mt-3" controlId="property-tenantId">
+            <Form.Label>Assign Tenant (Optional)</Form.Label>
+            <div className="d-flex gap-2">
+              <TenantAssignmentSelect
+                id="property-tenantId"
+                value={formData.tenantId ?? ''}
+                onChange={(tenantId) => setFormData((prev) => ({ ...prev, tenantId }))}
               />
             </div>
-            <div className="modal-body">
-              {error && <div className="alert alert-danger">{error}</div>}
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label htmlFor="property-name" className="form-label">
-                    Property Name
-                  </label>
-                  <input
-                    id="property-name"
-                    className="form-control"
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleTextChange}
-                    placeholder="Enter property name"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="property-type" className="form-label">
-                    Type
-                  </label>
-                  <input
-                    id="property-type"
-                    className="form-control"
-                    type="text"
-                    name="type"
-                    value={formData.type}
-                    onChange={handleTextChange}
-                    placeholder="Enter property type"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="property-address" className="form-label">
-                    Address
-                  </label>
-                  <input
-                    id="property-address"
-                    className="form-control"
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleTextChange}
-                    placeholder="Enter property address"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="property-price" className="form-label">
-                    Price
-                  </label>
-                  <input
-                    id="property-price"
-                    className="form-control"
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleTextChange}
-                    min={0}
-                    step="0.01"
-                  />
-                </div>
-                <div className="mb-0">
-                  <label htmlFor="property-level" className="form-label">
-                    Level
-                  </label>
-                  <input
-                    id="property-level"
-                    className="form-control"
-                    type="number"
-                    name="level"
-                    value={formData.level}
-                    onChange={handleTextChange}
-                    min={1}
-                    max={100}
-                  />
-                </div>
-                <div className="mb-0">
-                  <label htmlFor="start-date" className="form-label">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    id="start-date"
-                    className="form-control"
-                    name="startDate"
-                    value={formData.startDate ?? ''}
-                    onChange={handleTextChange}
-                  />
-                </div>
-
-                <div className="mb-0">
-                  <label htmlFor="end-dat" className="form-label">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    id="end-date"
-                    className="form-control"
-                    name="endDate"
-                    value={formData.endDate ?? ''}
-                    onChange={handleTextChange}
-                  />
-                </div>
-                <div className="mb-0 mt-3">
-                  <label htmlFor="property-tenantId" className="form-label">
-                    Assign Tenant (Optional)
-                  </label>
-                  <div className="d-flex gap-2">
-                    <TenantAssignmentSelect
-                      id="property-tenantId"
-                      value={formData.tenantId ?? ''}
-                      onChange={(tenantId) => setFormData((prev) => ({ ...prev, tenantId }))}
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={handleCloseModal}
-                disabled={addPropertyMutation.isPending}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => void submitAdd()}
-                disabled={addPropertyMutation.isPending}
-              >
-                {addPropertyMutation.isPending ? 'Adding...' : 'Add Property'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="modal-backdrop fade show" onClick={handleCloseModal} />
-    </>
+          </Form.Group>
+        </Form>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button
+          variant="secondary"
+          onClick={handleCloseModal}
+          disabled={addPropertyMutation.isPending}
+        >
+          Cancel
+        </Button>
+        <Button onClick={() => void submitAdd()} disabled={addPropertyMutation.isPending}>
+          {addPropertyMutation.isPending ? 'Adding...' : 'Add Property'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   )
 }

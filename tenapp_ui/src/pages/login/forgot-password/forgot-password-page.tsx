@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Alert, Button, Card, Form } from 'react-bootstrap'
 import { useForm, type SubmitHandler } from 'react-hook-form'
-import { Link } from 'react-router-dom'
-import { AuthService } from '../../../services/auth/authService.ts'
+import { useNavigate } from 'react-router-dom'
+import { AuthService } from '../../../context/auth/services/authService.ts'
 
 interface ForgotPasswordFormValues {
   email: string
@@ -10,6 +11,7 @@ interface ForgotPasswordFormValues {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function ForgotPasswordPage() {
+  const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const {
@@ -35,21 +37,19 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
+    <Card className="shadow-sm">
+      <Card.Body>
         <h1 className="h5 mb-3">Reset Password</h1>
-        {error && <div className="alert alert-danger">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
+        {error && <Alert variant="danger">{error}</Alert>}
+        {success && <Alert variant="success">{success}</Alert>}
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="mb-3">
-            <label htmlFor="forgot-email" className="form-label">
-              Email
-            </label>
-            <input
+        <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Form.Group className="mb-3" controlId="forgot-email">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
               id="forgot-email"
-              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
               type="email"
+              isInvalid={Boolean(errors.email)}
               aria-invalid={Boolean(errors.email)}
               {...register('email', {
                 required: 'Email is required.',
@@ -64,20 +64,20 @@ export function ForgotPasswordPage() {
               })}
               placeholder="Enter your email"
             />
-            {errors.email && <div className="invalid-feedback d-block">{errors.email.message}</div>}
-          </div>
+            <Form.Control.Feedback type="invalid">{errors.email?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
+          <Button type="submit" disabled={isSubmitting} className="w-100">
             {isSubmitting ? 'Sending...' : 'Send reset link'}
-          </button>
-        </form>
+          </Button>
+        </Form>
 
         <div className="mt-3 text-center">
-          <Link to="/login" className="btn btn-link p-0">
+          <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
             Back to login
-          </Link>
+          </Button>
         </div>
-      </div>
-    </div>
+      </Card.Body>
+    </Card>
   )
 }

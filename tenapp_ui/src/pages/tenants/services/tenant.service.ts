@@ -1,5 +1,5 @@
-import { ApiClient } from '../api/api-client.ts'
-import { type SortDirection } from '../sort/sort.service.ts'
+import { ApiClient } from '../../../common/services/api/api-client.ts'
+import { type SortDirection } from '../../../common/services/sort/sort.service.ts'
 
 export interface Tenant {
   id: string

@@ -1,17 +1,19 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { Alert, Button, Form, InputGroup, Table } from 'react-bootstrap'
 import { LoadingWrapper } from '../../../common/components/loading-wrapper/loading-wrapper.tsx'
+import { SortableTableHeaderColumn } from '../../../common/components/sortable-table-header-column/SortableTableHeaderColumn.tsx'
 
 import {
   getNextSortDirection,
-  getSortArrowClasses,
   type SortDirection,
-} from '../../../services/sort/sort.service.ts'
+} from '../../../common/services/sort/sort.service.ts'
 import { AppPagination } from '../../../common/components/pagination/app-pagination.tsx'
-import { usePropertiesQuery } from '../../../services/properties/property.queries.ts'
-import type { PropertySortField } from '../../../services/properties/property.interfaces.ts'
+import { usePropertiesQuery } from '../services/property.queries.ts'
+import type { PropertySortField } from '../services/property.interfaces.ts'
 
 export function PropertyTable() {
+  const navigate = useNavigate()
   const pageSize = 30
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -54,21 +56,19 @@ export function PropertyTable() {
     <>
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-2 mb-3">
         <div>
-          <div className="input-group">
-            <input
+          <InputGroup>
+            <Form.Control
               type="text"
-              className="form-control"
               placeholder="Search by name"
               value={searchField}
               onChange={(event) => {
                 setSearchField(event.target.value)
               }}
             />
-          </div>
+          </InputGroup>
         </div>
         <div className="d-flex justify-content-between align-items-center gap-2">
-          <select
-            className="form-select"
+          <Form.Select
             aria-label="Sort properties by field"
             value={sortBy}
             onChange={(event) => {
@@ -80,9 +80,8 @@ export function PropertyTable() {
             <option value="name">Sort: Name</option>
             <option value="type">Sort: Type</option>
             <option value="level">Sort: Level</option>
-          </select>
-          <select
-            className="form-select"
+          </Form.Select>
+          <Form.Select
             aria-label="Sort properties direction"
             value={sortDir}
             onChange={(event) => {
@@ -93,75 +92,45 @@ export function PropertyTable() {
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
-          </select>
+          </Form.Select>
         </div>
       </div>
 
       {propertiesQuery.isError && (
-        <div className="alert alert-danger">Could not load properties. Please try again.</div>
+        <Alert variant="danger">Could not load properties. Please try again.</Alert>
       )}
 
       <LoadingWrapper isLoading={propertiesQuery.isFetching}>
-        <table className="table table-bordered table-hover align-middle">
+        <Table bordered hover className="align-middle">
           <thead>
             <tr>
               <th>
-                <button
-                  type="button"
-                  className={`app-sort-header ${sortBy === 'name' ? 'active' : ''}`}
-                  onClick={() => applySort('name')}
-                >
-                  <span>Name</span>
-                  <span className="app-sort-arrows" aria-hidden>
-                    <span className={getSortArrowClasses(sortBy === 'name', sortDir, 'asc')}>
-                      ^
-                    </span>
-                    <span
-                      className={`${getSortArrowClasses(sortBy === 'name', sortDir, 'desc')} app-sort-arrow-down`}
-                    >
-                      ^
-                    </span>
-                  </span>
-                </button>
+                <SortableTableHeaderColumn
+                  activeField={sortBy}
+                  direction={sortDir}
+                  field="name"
+                  label="Name"
+                  onSort={applySort}
+                />
               </th>
               <th>Address</th>
               <th className="d-none d-md-table-cell">
-                <button
-                  type="button"
-                  className={`app-sort-header ${sortBy === 'type' ? 'active' : ''}`}
-                  onClick={() => applySort('type')}
-                >
-                  <span>Type</span>
-                  <span className="app-sort-arrows" aria-hidden>
-                    <span className={getSortArrowClasses(sortBy === 'type', sortDir, 'asc')}>
-                      ^
-                    </span>
-                    <span
-                      className={`${getSortArrowClasses(sortBy === 'type', sortDir, 'desc')} app-sort-arrow-down`}
-                    >
-                      ^
-                    </span>
-                  </span>
-                </button>
+                <SortableTableHeaderColumn
+                  activeField={sortBy}
+                  direction={sortDir}
+                  field="type"
+                  label="Type"
+                  onSort={applySort}
+                />
               </th>
               <th className="d-none d-md-table-cell">
-                <button
-                  type="button"
-                  className={`app-sort-header ${sortBy === 'level' ? 'active' : ''}`}
-                  onClick={() => applySort('level')}
-                >
-                  <span>Level</span>
-                  <span className="app-sort-arrows" aria-hidden>
-                    <span className={getSortArrowClasses(sortBy === 'level', sortDir, 'asc')}>
-                      ^
-                    </span>
-                    <span
-                      className={`${getSortArrowClasses(sortBy === 'level', sortDir, 'desc')} app-sort-arrow-down`}
-                    >
-                      ^
-                    </span>
-                  </span>
-                </button>
+                <SortableTableHeaderColumn
+                  activeField={sortBy}
+                  direction={sortDir}
+                  field="level"
+                  label="Level"
+                  onSort={applySort}
+                />
               </th>
               <th className="d-none d-md-table-cell">Price</th>
               <th className="d-none d-md-table-cell">Created At</th>
@@ -181,15 +150,13 @@ export function PropertyTable() {
                     {new Date(property.createdAt).toLocaleDateString()}
                   </td>
                   <td className="table-action-col">
-                    <Link to={`/properties/${property.id}`} className="btn btn-primary">
-                      Details
-                    </Link>
+                    <Button onClick={() => navigate(`/properties/${property.id}`)}>Details</Button>
                   </td>
                 </tr>
               )
             })}
           </tbody>
-        </table>
+        </Table>
       </LoadingWrapper>
 
       <div className="d-flex justify-content-between align-items-center">

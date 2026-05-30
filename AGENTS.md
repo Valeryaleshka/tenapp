@@ -38,10 +38,13 @@ Applies to the whole monorepo: `tenapp_api` and `tenapp_ui`.
 - Build accessible, responsive UI: semantic HTML, labels, keyboard support, focus states, no overflow.
 - Avoid unsafe HTML injection; sanitize and document if `dangerouslySetInnerHTML` is unavoidable.
 - Use `VITE_*` env vars for environment-specific values; never hardcode deployment URLs/secrets.
+- Use a separate style file for separated components and import it directly in the component.
 
 ## React File Structure
 - Keep component files small. Move reusable helpers, interfaces, constants, API logic, and large transformations out of `.tsx`.
-- Local feature files: `Component.tsx`, `Component.interfaces.ts`, `Component.constants.ts`, `Component.helpers.ts`, `Component.test.tsx`.
+- Put every new component in its own folder and use PascalCase file names.
+- Local component folder files: `Component.tsx`, `Component.interfaces.ts`, `Component.constants.ts`, `Component.helpers.ts`, `Component.css`, `Component.test.tsx`. Create only the files that are needed for that component.
+- Keep component interfaces, styles, helpers, constants, and tests colocated inside the component folder instead of placing them beside unrelated components.
 - Shared files: `src/types/*`, `src/constants/*`, `src/utils/*`, `src/hooks/*`, `src/services/*`.
 - Use PascalCase for components, camelCase for helpers, and UPPER_SNAKE_CASE for constant objects.
 - Prefer stable keys from data IDs; never use array indexes for mutable, filtered, sorted, or editable lists.

@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Alert, Button, Form } from 'react-bootstrap'
 import { useAuth } from '../../common/hooks/useAuth.ts'
+import './settings-page.css'
 
 interface SettingsForm {
   firstName: string
@@ -103,7 +105,7 @@ export function SettingsPage() {
 
   return (
     <div className="container py-4">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Settings</h1>
       </div>
 
@@ -112,22 +114,20 @@ export function SettingsPage() {
           <h2 className="h5 mb-1">Account</h2>
           <p className="text-muted mb-4">Update your account details.</p>
 
-          {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
+          {error && <Alert variant="danger">{error}</Alert>}
+          {success && <Alert variant="success">{success}</Alert>}
 
-          <form onSubmit={handleSubmit} noValidate>
+          <Form onSubmit={handleSubmit} noValidate>
             <div className="settings-form-grid">
-              <div className="mb-3">
-                <label htmlFor="settings-first-name" className="form-label">
-                  First Name
-                </label>
-                <input
+              <Form.Group className="mb-3" controlId="settings-first-name">
+                <Form.Label>First Name</Form.Label>
+                <Form.Control
                   id="settings-first-name"
-                  className={`form-control ${formErrors.firstName ? 'is-invalid' : ''}`}
                   type="text"
                   required
                   maxLength={100}
                   value={formData.firstName}
+                  isInvalid={Boolean(formErrors.firstName)}
                   aria-invalid={Boolean(formErrors.firstName)}
                   onChange={(event) => {
                     setFormData((prev) => ({ ...prev, firstName: event.target.value }))
@@ -135,22 +135,18 @@ export function SettingsPage() {
                   }}
                   placeholder="Enter first name"
                 />
-                {formErrors.firstName && (
-                  <div className="invalid-feedback d-block">{formErrors.firstName}</div>
-                )}
-              </div>
+                <Form.Control.Feedback type="invalid">{formErrors.firstName}</Form.Control.Feedback>
+              </Form.Group>
 
-              <div className="mb-3">
-                <label htmlFor="settings-second-name" className="form-label">
-                  Last Name
-                </label>
-                <input
+              <Form.Group className="mb-3" controlId="settings-second-name">
+                <Form.Label>Last Name</Form.Label>
+                <Form.Control
                   id="settings-second-name"
-                  className={`form-control ${formErrors.secondName ? 'is-invalid' : ''}`}
                   type="text"
                   required
                   maxLength={100}
                   value={formData.secondName}
+                  isInvalid={Boolean(formErrors.secondName)}
                   aria-invalid={Boolean(formErrors.secondName)}
                   onChange={(event) => {
                     setFormData((prev) => ({ ...prev, secondName: event.target.value }))
@@ -158,22 +154,20 @@ export function SettingsPage() {
                   }}
                   placeholder="Enter last name"
                 />
-                {formErrors.secondName && (
-                  <div className="invalid-feedback d-block">{formErrors.secondName}</div>
-                )}
-              </div>
+                <Form.Control.Feedback type="invalid">
+                  {formErrors.secondName}
+                </Form.Control.Feedback>
+              </Form.Group>
             </div>
 
-            <div className="mb-3">
-              <label htmlFor="settings-email" className="form-label">
-                Email
-              </label>
-              <input
+            <Form.Group className="mb-3" controlId="settings-email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
                 id="settings-email"
-                className={`form-control ${formErrors.email ? 'is-invalid' : ''}`}
                 type="email"
                 required
                 value={formData.email}
+                isInvalid={Boolean(formErrors.email)}
                 aria-invalid={Boolean(formErrors.email)}
                 onChange={(event) => {
                   setFormData((prev) => ({ ...prev, email: event.target.value }))
@@ -181,21 +175,17 @@ export function SettingsPage() {
                 }}
                 placeholder="Enter email"
               />
-              {formErrors.email && (
-                <div className="invalid-feedback d-block">{formErrors.email}</div>
-              )}
-            </div>
+              <Form.Control.Feedback type="invalid">{formErrors.email}</Form.Control.Feedback>
+            </Form.Group>
 
-            <div className="mb-4">
-              <label htmlFor="settings-phone" className="form-label">
-                Phone Number
-              </label>
-              <input
+            <Form.Group className="mb-4" controlId="settings-phone">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
                 id="settings-phone"
-                className={`form-control ${formErrors.phoneNumber ? 'is-invalid' : ''}`}
                 type="tel"
                 maxLength={30}
                 value={formData.phoneNumber}
+                isInvalid={Boolean(formErrors.phoneNumber)}
                 aria-invalid={Boolean(formErrors.phoneNumber)}
                 onChange={(event) => {
                   setFormData((prev) => ({ ...prev, phoneNumber: event.target.value }))
@@ -203,15 +193,13 @@ export function SettingsPage() {
                 }}
                 placeholder="Add phone number"
               />
-              {formErrors.phoneNumber && (
-                <div className="invalid-feedback d-block">{formErrors.phoneNumber}</div>
-              )}
-            </div>
+              <Form.Control.Feedback type="invalid">{formErrors.phoneNumber}</Form.Control.Feedback>
+            </Form.Group>
 
-            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
-          </form>
+            </Button>
+          </Form>
         </div>
       </div>
     </div>
