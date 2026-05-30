@@ -8,5 +8,7 @@ artifacts/
 *.suo
 
 # Local secrets
+appsettings.json
+appsettings.Development.json
 appsettings.Local.json
 .env
