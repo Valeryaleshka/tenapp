@@ -39,3 +39,21 @@ These to `tenapp_ui` only.
 - Add focused tests for changed behavior when the project has a matching test setup. For UI behavior, cover user-visible outcomes, loading states, error states, and authorization-sensitive flows.
 - Run `npm run format`,`npm run build` and `npm run lint` after frontend changes when feasible. Note any command that could not be run.
 - Use React query bu default for data fetching.
+# React Project Structure Rules
+
+## File organization
+
+Keep React files small, focused, and easy to navigate.
+
+Do not place helpers, interfaces, constants, API functions, or large business logic directly inside component files unless they are truly local and very small.
+
+Preferred structure:
+
+```text
+src/
+  components/
+    ComponentName/
+      ComponentName.tsx
+      ComponentName.constants.ts
+      ComponentName.helpers.ts
+      ComponentName.interfaces.ts
