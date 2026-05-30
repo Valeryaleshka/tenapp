@@ -6,7 +6,7 @@ import {
   type RegisterPayload,
   type UpdateAccountPayload,
   type User,
-} from '../../services/auth/authService.ts'
+} from './services/authService.ts'
 import type { AuthContextValue } from './auth-context.interfaces.tsx'
 
 export function AuthProvider({ children }: { children: ReactNode }) {

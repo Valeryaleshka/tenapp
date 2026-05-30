@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { Spinner } from 'react-bootstrap'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import './App.css'
 import {
@@ -13,22 +14,13 @@ import {
   TenantsPage,
 } from './common/routes/lazy-pages.ts'
 import { AppLayout } from './components/layout-components/layout/app-layout.tsx'
+import { AuthLayout } from './components/layout-components/auth-layout/auth-layout.tsx'
 import { useAuth } from './common/hooks/useAuth.ts'
 
 function RouteLoadingFallback() {
   return (
     <div className="container py-5 d-flex justify-content-center align-items-center">
-      <div className="spinner-border text-primary" role="status" aria-label="Loading page" />
-    </div>
-  )
-}
-
-function AuthLayout() {
-  return (
-    <div className="auth-layout">
-      <div className="auth-card-wrap">
-        <Outlet />
-      </div>
+      <Spinner animation="border" variant="primary" role="status" aria-label="Loading page" />
     </div>
   )
 }
@@ -49,8 +41,9 @@ function App() {
   if (isLoading) {
     return (
       <div className="container vh-100 d-flex justify-content-center align-items-center">
-        <div
-          className="spinner-border text-primary"
+        <Spinner
+          animation="border"
+          variant="primary"
           role="status"
           aria-label="Loading application"
         />

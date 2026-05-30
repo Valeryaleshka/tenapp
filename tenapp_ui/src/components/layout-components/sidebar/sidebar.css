@@ -1,0 +1,61 @@
+.app-sidebar-content {
+  width: 100%;
+}
+
+.app-menu-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  color: var(--app-text);
+  font-weight: 600;
+  transition: all 180ms ease;
+}
+
+.app-menu-icon {
+  flex: 0 0 auto;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.app-menu-label {
+  min-width: 0;
+}
+
+.app-menu-link:hover {
+  background: #e9f4fc;
+  color: #224f72;
+}
+
+.app-menu-link.active {
+  background: var(--app-accent);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(52, 152, 219, 0.3);
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .app-sidebar .app-sidebar-content > .border-bottom {
+    display: none !important;
+  }
+
+  .app-sidebar nav {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .app-sidebar .app-menu-link {
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.65rem;
+  }
+
+  .app-sidebar .app-menu-label {
+    display: none;
+  }
+
+  .app-sidebar .app-menu-link:hover {
+    transform: none;
+  }
+}

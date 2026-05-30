@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { navigationLinks } from './navigation-links.ts'
+import './sidebar.css'
 
 export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const navClassName = ({ isActive }: { isActive: boolean }) =>
@@ -7,7 +8,7 @@ export function AppSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="app-sidebar-content d-flex flex-column h-100">
-      <div className="d-none d-md-flex px-3 align-items-center" style={{ height: '75px' }}>
+      <div className="d-none d-lg-flex px-3 align-items-center" style={{ height: '75px' }}>
         <div className="fw-semibold fs-5 d-none d-xl-flex">Tenapp</div>
       </div>
 

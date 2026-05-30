@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Button } from 'react-bootstrap'
 import { AddProperty } from './components/property-add.tsx'
 import { PropertyTable } from './components/property-table.tsx'
 
@@ -7,11 +8,11 @@ export function PropertiesPage() {
 
   return (
     <div className="container py-4">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Properties</h1>
-        <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+        <Button type="button" onClick={() => setShowAddModal(true)}>
           Add Property
-        </button>
+        </Button>
       </div>
 
       <PropertyTable />

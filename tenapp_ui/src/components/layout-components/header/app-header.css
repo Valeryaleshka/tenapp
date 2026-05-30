@@ -1,0 +1,52 @@
+.app-top-header {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--app-border) !important;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 250px;
+  z-index: 1020;
+}
+
+.app-account-button {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--app-accent);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid var(--app-accent);
+  box-shadow: 0 8px 18px rgba(52, 152, 219, 0.24);
+}
+
+.app-account-button:hover,
+.app-account-button:focus {
+  color: #fff;
+  background: var(--app-accent-strong);
+  border-color: var(--app-accent-strong);
+}
+
+.app-account-button.dropdown-toggle::after {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .app-top-header {
+    left: 0;
+  }
+
+  .app-account-button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .app-top-header {
+    left: 76px;
+  }
+}

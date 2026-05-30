@@ -3,7 +3,7 @@ import type {
   RegisterPayload,
   UpdateAccountPayload,
   User,
-} from '../../services/auth/authService.ts'
+} from './services/authService.ts'
 
 export interface AuthContextValue {
   user: User | null

@@ -1,14 +1,16 @@
 import { type ChangeEvent, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { type PropertyUpsertPayload } from '../../services/properties/property.interfaces.ts'
+import { Alert, Button, Card, Container, Form, Modal, Spinner } from 'react-bootstrap'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { type PropertyUpsertPayload } from './services/property.interfaces.ts'
 import {
   useDeletePropertyMutation,
   usePropertyQuery,
   useUpdatePropertyMutation,
-} from '../../services/properties/property.queries.ts'
+} from './services/property.queries.ts'
 import { TenantAssignmentSelect } from './components/tenant-assignment-select.tsx'
 
 export function PropertyDetailPage() {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const propertyQuery = usePropertyQuery(id)
   const updatePropertyMutation = useUpdatePropertyMutation(id)
@@ -100,8 +102,9 @@ export function PropertyDetailPage() {
   if (propertyQuery.isLoading) {
     return (
       <div className="py-4">
-        <div
-          className="spinner-border text-primary"
+        <Spinner
+          animation="border"
+          variant="primary"
           role="status"
           aria-label="Loading property details"
         />
@@ -112,37 +115,36 @@ export function PropertyDetailPage() {
   if (propertyQuery.isError || !property) {
     return (
       <div className="py-4">
-        <div className="alert alert-warning">Property not found or has been deleted.</div>
-        <Link to="/properties" className="btn btn-secondary">
+        <Alert variant="warning">Property not found or has been deleted.</Alert>
+        <Button variant="secondary" onClick={() => navigate('/properties')}>
           Back to Properties
-        </Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="py-4 container">
-      <div className="page-toolbar d-flex justify-content-between align-items-center mb-3">
+    <Container className="py-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="h4 mb-0 page-title">Property Details</h1>
         <div className="d-flex gap-2">
-          <Link to="/properties" className="btn btn-secondary">
+          <Button variant="secondary" onClick={() => navigate('/properties')}>
             Back
-          </Link>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-primary"
             onClick={() => {
               resetEditForm()
               setShowEditModal(true)
             }}
           >
             Edit
-          </button>
+          </Button>
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-body">
+      <Card>
+        <Card.Body>
           <div>
             <strong>Name:</strong> {property.name}
           </div>
@@ -181,174 +183,128 @@ export function PropertyDetailPage() {
               <strong>End Date:</strong> {new Date(property.endDate).toLocaleDateString()}
             </div>
           )}
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
 
-      {showEditModal && (
-        <>
-          <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">Edit Property</h5>
-                  <button
-                    type="button"
-                    className="btn-close"
-                    aria-label="Close"
-                    onClick={handleCloseEditModal}
-                  />
-                </div>
-                <div className="modal-body">
-                  {error && <div className="alert alert-danger">{error}</div>}
-                  <form>
-                    <div className="mb-3">
-                      <label htmlFor="edit-property-name" className="form-label">
-                        Name
-                      </label>
-                      <input
-                        id="edit-property-name"
-                        className="form-control"
-                        type="text"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-property-type" className="form-label">
-                        Type
-                      </label>
-                      <input
-                        id="edit-property-type"
-                        className="form-control"
-                        type="text"
-                        name="type"
-                        value={editForm.type}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-property-address" className="form-label">
-                        Address
-                      </label>
-                      <input
-                        id="edit-property-address"
-                        className="form-control"
-                        type="text"
-                        name="address"
-                        value={editForm.address}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-property-price" className="form-label">
-                        Price
-                      </label>
-                      <input
-                        id="edit-property-price"
-                        className="form-control"
-                        type="number"
-                        name="price"
-                        min={0}
-                        step="0.01"
-                        value={editForm.price}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="edit-property-level" className="form-label">
-                        Level
-                      </label>
-                      <input
-                        id="edit-property-level"
-                        className="form-control"
-                        type="number"
-                        name="level"
-                        min={1}
-                        max={100}
-                        value={editForm.level}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="mb-0">
-                      <label htmlFor="start-date" className="form-label">
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        id="start-date"
-                        className="form-control"
-                        name="startDate"
-                        value={editForm.startDate ?? ''}
-                        onChange={handleEditChange}
-                      />
-                    </div>
+      <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Property</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form>
+            <Form.Group className="mb-3" controlId="edit-property-name">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                id="edit-property-name"
+                type="text"
+                name="name"
+                value={editForm.name}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-property-type">
+              <Form.Label>Type</Form.Label>
+              <Form.Control
+                id="edit-property-type"
+                type="text"
+                name="type"
+                value={editForm.type}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-property-address">
+              <Form.Label>Address</Form.Label>
+              <Form.Control
+                id="edit-property-address"
+                type="text"
+                name="address"
+                value={editForm.address}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-property-price">
+              <Form.Label>Price</Form.Label>
+              <Form.Control
+                id="edit-property-price"
+                type="number"
+                name="price"
+                min={0}
+                step="0.01"
+                value={editForm.price}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="edit-property-level">
+              <Form.Label>Level</Form.Label>
+              <Form.Control
+                id="edit-property-level"
+                type="number"
+                name="level"
+                min={1}
+                max={100}
+                value={editForm.level}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-0" controlId="edit-start-date">
+              <Form.Label>Start Date</Form.Label>
+              <Form.Control
+                type="date"
+                id="edit-start-date"
+                name="startDate"
+                value={editForm.startDate ?? ''}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
 
-                    <div className="mb-0">
-                      <label htmlFor="end-dat" className="form-label">
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        id="end-date"
-                        className="form-control"
-                        name="endDate"
-                        value={editForm.endDate ?? ''}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="edit-property-tenantId" className="form-label">
-                        Assign Tenant (Optional)
-                      </label>
-                      <div className="d-flex gap-2">
-                        <TenantAssignmentSelect
-                          id="edit-property-tenantId"
-                          value={editForm.tenantId ?? ''}
-                          onChange={(tenantId) => setEditForm((prev) => ({ ...prev, tenantId }))}
-                        />
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <div className="modal-footer d-flex justify-content-between">
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => void handleDelete()}
-                    disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}
-                  >
-                    {deletePropertyMutation.isPending ? 'Deleting...' : 'Delete'}
-                  </button>
-                  <div className="d-flex gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={handleCloseEditModal}
-                      disabled={
-                        updatePropertyMutation.isPending || deletePropertyMutation.isPending
-                      }
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => void handleSave()}
-                      disabled={
-                        updatePropertyMutation.isPending || deletePropertyMutation.isPending
-                      }
-                    >
-                      {updatePropertyMutation.isPending ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
-                </div>
+            <Form.Group className="mb-0" controlId="edit-end-date">
+              <Form.Label>End Date</Form.Label>
+              <Form.Control
+                type="date"
+                id="edit-end-date"
+                name="endDate"
+                value={editForm.endDate ?? ''}
+                onChange={handleEditChange}
+              />
+            </Form.Group>
+            <Form.Group controlId="edit-property-tenantId">
+              <Form.Label>Assign Tenant (Optional)</Form.Label>
+              <div className="d-flex gap-2">
+                <TenantAssignmentSelect
+                  id="edit-property-tenantId"
+                  value={editForm.tenantId ?? ''}
+                  onChange={(tenantId) => setEditForm((prev) => ({ ...prev, tenantId }))}
+                />
               </div>
-            </div>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-between">
+          <Button
+            variant="danger"
+            onClick={() => void handleDelete()}
+            disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}
+          >
+            {deletePropertyMutation.isPending ? 'Deleting...' : 'Delete'}
+          </Button>
+          <div className="d-flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={handleCloseEditModal}
+              disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleSave()}
+              disabled={updatePropertyMutation.isPending || deletePropertyMutation.isPending}
+            >
+              {updatePropertyMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
           </div>
-          <div className="modal-backdrop fade show" onClick={handleCloseEditModal} />
-        </>
-      )}
-    </div>
+        </Modal.Footer>
+      </Modal>
+    </Container>
   )
 }

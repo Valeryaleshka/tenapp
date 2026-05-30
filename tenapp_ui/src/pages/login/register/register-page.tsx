@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { Alert, Button, Card, Form } from 'react-bootstrap'
 import { useForm, type SubmitHandler } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../common/hooks/useAuth.ts'
-import type { RegisterPayload } from '../../../services/auth/authService.ts'
+import type { RegisterPayload } from '../../../context/auth/services/authService.ts'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -40,20 +41,18 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
+    <Card className="shadow-sm">
+      <Card.Body>
         <h1 className="h5 mb-3">Register</h1>
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && <Alert variant="danger">{error}</Alert>}
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="mb-3">
-            <label htmlFor="firstName" className="form-label">
-              First Name
-            </label>
-            <input
+        <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Form.Group className="mb-3" controlId="firstName">
+            <Form.Label>First Name</Form.Label>
+            <Form.Control
               id="firstName"
-              className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
               type="text"
+              isInvalid={Boolean(errors.firstName)}
               aria-invalid={Boolean(errors.firstName)}
               {...registerField('firstName', {
                 validate: (value) => value.trim().length > 0 || 'First name is required.',
@@ -61,19 +60,17 @@ export function RegisterPage() {
               })}
               placeholder="Enter first name"
             />
-            {errors.firstName && (
-              <div className="invalid-feedback d-block">{errors.firstName.message}</div>
-            )}
-          </div>
+            <Form.Control.Feedback type="invalid">
+              {errors.firstName?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="secondName" className="form-label">
-              Second Name
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="secondName">
+            <Form.Label>Second Name</Form.Label>
+            <Form.Control
               id="secondName"
-              className={`form-control ${errors.secondName ? 'is-invalid' : ''}`}
               type="text"
+              isInvalid={Boolean(errors.secondName)}
               aria-invalid={Boolean(errors.secondName)}
               {...registerField('secondName', {
                 validate: (value) => value.trim().length > 0 || 'Second name is required.',
@@ -81,19 +78,17 @@ export function RegisterPage() {
               })}
               placeholder="Enter second name"
             />
-            {errors.secondName && (
-              <div className="invalid-feedback d-block">{errors.secondName.message}</div>
-            )}
-          </div>
+            <Form.Control.Feedback type="invalid">
+              {errors.secondName?.message}
+            </Form.Control.Feedback>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="registerEmail" className="form-label">
-              Email
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="registerEmail">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
               id="registerEmail"
-              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
               type="email"
+              isInvalid={Boolean(errors.email)}
               aria-invalid={Boolean(errors.email)}
               {...registerField('email', {
                 required: 'Email is required.',
@@ -105,17 +100,15 @@ export function RegisterPage() {
               })}
               placeholder="Enter email"
             />
-            {errors.email && <div className="invalid-feedback d-block">{errors.email.message}</div>}
-          </div>
+            <Form.Control.Feedback type="invalid">{errors.email?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="registerPassword" className="form-label">
-              Password
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="registerPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
               id="registerPassword"
-              className={`form-control ${errors.password ? 'is-invalid' : ''}`}
               type="password"
+              isInvalid={Boolean(errors.password)}
               aria-invalid={Boolean(errors.password)}
               {...registerField('password', {
                 validate: (value) => value.trim().length > 0 || 'Password is required.',
@@ -123,23 +116,21 @@ export function RegisterPage() {
               })}
               placeholder="Choose password"
             />
-            {errors.password && (
-              <div className="invalid-feedback d-block">{errors.password.message}</div>
-            )}
-          </div>
+            <Form.Control.Feedback type="invalid">{errors.password?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
+          <Button type="submit" disabled={isSubmitting} className="w-100">
             {isSubmitting ? 'Creating account...' : 'Register'}
-          </button>
-        </form>
+          </Button>
+        </Form>
 
         <div className="mt-3 text-center">
           Already have an account?{' '}
-          <Link to="/login" className="btn btn-link p-0">
+          <Button variant="link" className="p-0" onClick={() => navigate('/login')}>
             Login
-          </Link>
+          </Button>
         </div>
-      </div>
-    </div>
+      </Card.Body>
+    </Card>
   )
 }

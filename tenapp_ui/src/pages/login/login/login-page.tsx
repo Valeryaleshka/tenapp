@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { Alert, Button, Card, Form } from 'react-bootstrap'
 import { useForm, type SubmitHandler } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../common/hooks/useAuth.ts'
-import type { LoginPayload } from '../../../services/auth/authService.ts'
+import type { LoginPayload } from '../../../context/auth/services/authService.ts'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -35,19 +36,17 @@ export function LoginPage() {
   }
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
+    <Card className="shadow-sm">
+      <Card.Body>
         <h1 className="h5 mb-3">Login</h1>
-        {error && <div className="alert alert-danger">{error}</div>}
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email
-            </label>
-            <input
+        {error && <Alert variant="danger">{error}</Alert>}
+        <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <Form.Group className="mb-3" controlId="email">
+            <Form.Label>Email</Form.Label>
+            <Form.Control
               id="email"
-              className={`form-control ${errors.email ? 'is-invalid' : ''}`}
               type="text"
+              isInvalid={Boolean(errors.email)}
               aria-invalid={Boolean(errors.email)}
               {...register('email', {
                 required: 'Enter email.',
@@ -59,17 +58,15 @@ export function LoginPage() {
               })}
               placeholder="Enter email"
             />
-            {errors.email && <div className="invalid-feedback d-block">{errors.email.message}</div>}
-          </div>
+            <Form.Control.Feedback type="invalid">{errors.email?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <input
+          <Form.Group className="mb-3" controlId="password">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
               id="password"
-              className={`form-control ${errors.password ? 'is-invalid' : ''}`}
               type="password"
+              isInvalid={Boolean(errors.password)}
               aria-invalid={Boolean(errors.password)}
               {...register('password', {
                 validate: (value) => value.trim().length > 0 || 'Password is required.',
@@ -77,28 +74,26 @@ export function LoginPage() {
               })}
               placeholder="Enter password"
             />
-            {errors.password && (
-              <div className="invalid-feedback d-block">{errors.password.message}</div>
-            )}
-          </div>
+            <Form.Control.Feedback type="invalid">{errors.password?.message}</Form.Control.Feedback>
+          </Form.Group>
 
-          <button type="submit" disabled={isSubmitting} className="btn btn-primary w-100">
+          <Button type="submit" disabled={isSubmitting} className="w-100">
             {isSubmitting ? 'Signing in...' : 'Login'}
-          </button>
-        </form>
+          </Button>
+        </Form>
 
         <div className="mt-3 text-center">
           No account?{' '}
-          <Link to="/register" className="btn btn-link p-0">
+          <Button variant="link" className="p-0" onClick={() => navigate('/register')}>
             Register
-          </Link>
+          </Button>
         </div>
         <div className="mt-2 text-center">
-          <Link to="/forgot-password" className="btn btn-link p-0">
+          <Button variant="link" className="p-0" onClick={() => navigate('/forgot-password')}>
             Forgot password?
-          </Link>
+          </Button>
         </div>
-      </div>
-    </div>
+      </Card.Body>
+    </Card>
   )
 }
