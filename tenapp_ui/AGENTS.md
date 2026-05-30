@@ -48,6 +48,7 @@ Keep React files small, focused, and easy to navigate.
 Do not place helpers, interfaces, constants, API functions, or large business logic directly inside component files unless they are truly local and very small.
 
 Preferred structure:
+for components, services, helpers, hooks.
 
 ```text
 src/
