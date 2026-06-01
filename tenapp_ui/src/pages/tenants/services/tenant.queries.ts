@@ -1,10 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type SortDirection } from '../../../common/services/sort/sort.service.ts'
-import {
-  tenantService,
-  type CreateTenantPayload,
-  type TenantSortField,
-} from './tenant.service.ts'
+import { tenantService, type CreateTenantPayload, type TenantSortField} from './tenant.service.ts'
 
 export const tenantQueryKeys = {
   all: ['tenants'] as const,
