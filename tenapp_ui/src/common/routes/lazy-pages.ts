@@ -1,5 +1,11 @@
 import { lazy } from 'react'
 
+export const AboutPage = lazy(() =>
+  import('../../pages/about/about-page.tsx').then((module) => ({
+    default: module.AboutPage,
+  })),
+)
+
 export const ForgotPasswordPage = lazy(() =>
   import('../../pages/login/forgot-password/forgot-password-page.tsx').then((module) => ({
     default: module.ForgotPasswordPage,

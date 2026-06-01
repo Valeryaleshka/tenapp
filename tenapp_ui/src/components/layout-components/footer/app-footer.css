@@ -1,0 +1,24 @@
+.app-footer {
+  flex-shrink: 0;
+  color: var(--app-muted);
+  background: var(--app-surface);
+}
+
+.app-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+  font-size: 0.925rem;
+}
+
+.app-footer-links a {
+  color: var(--app-muted);
+  text-decoration: none;
+}
+
+.app-footer-links a:hover {
+  color: var(--app-accent-strong);
+}
