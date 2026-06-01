@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd /d /c \"cd /d tenapp_ui && npm run format && npm run lint && npm run build\"",
+            "commandWindows": "cmd /d /c \"cd /d tenapp_ui && npm run format && npm run lint && npm run build\"",
+            "statusMessage": "Running tenapp frontend checks"
+          },
+          {
+            "type": "command",
+            "command": "cmd /d /c \"cd /d tenapp_api && dotnet build tenapp-core.csproj && dotnet test TenappCore.Tests\\TenappCore.Tests.csproj\"",
+            "commandWindows": "cmd /d /c \"cd /d tenapp_api && dotnet build tenapp-core.csproj && dotnet test TenappCore.Tests\\TenappCore.Tests.csproj\"",
+            "statusMessage": "Running tenapp backend checks"
+          }
+        ]
+      }
+    ]
+  }
+}
