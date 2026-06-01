@@ -3,6 +3,7 @@ import { Spinner } from 'react-bootstrap'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import './App.css'
 import {
+  AboutPage,
   ForgotPasswordPage,
   LoginPage,
   PropertyDetailPage,
@@ -75,6 +76,7 @@ function App() {
             <Route path="/tenants" element={<TenantsPage />} />
             <Route path="/tenants/:id" element={<TenantDetailPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/about" element={<AboutPage />} />
           </Route>
         </Route>
 

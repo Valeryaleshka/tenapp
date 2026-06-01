@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AppSidebar } from '../sidebar/sidebar.tsx'
 import { AppHeader } from '../header/app-header.tsx'
+import { AppFooter } from '../footer/app-footer.tsx'
 import { Offcanvas } from 'react-bootstrap'
 import { useAuth } from '../../../common/hooks/useAuth.ts'
 import './app-layout.css'
@@ -27,6 +28,8 @@ export function AppLayout() {
         <main className="app-content flex-grow-1">
           <Outlet />
         </main>
+
+        <AppFooter />
       </div>
 
       <Offcanvas show={showDrawer} onHide={() => setShowDrawer(false)}>
