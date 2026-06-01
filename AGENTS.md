@@ -14,6 +14,8 @@ Applies to the whole monorepo: `tenapp_api` and `tenapp_ui`.
 - Prefer dedicated tools over shell commands. Use `rg`/`rg --files` for search when available.
 - Read enough context before editing. Batch related edits; avoid repeated micro-patches.
 - Use `apply_patch` for manual file edits when practical.
+- For new feature work, create a new branch instead of committing directly to `main`.
+- Open a pull request targeting `main` after pushing new feature changes.
 - Add/update tests when behavior changes. Run targeted checks first, then broader checks when needed.
 - Final response: concise summary, changed paths, verification run or skipped.
 

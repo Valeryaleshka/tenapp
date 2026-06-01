@@ -1,4 +1,4 @@
-# propname UI
+# Tenapp UI
 
 Frontend application for authentication and property management.
 
