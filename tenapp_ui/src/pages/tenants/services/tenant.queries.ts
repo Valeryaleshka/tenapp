@@ -1,12 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type SortDirection } from '../../../common/services/sort/sort.service.ts'
-import { tenantService, type CreateTenantPayload, type TenantSortField } from './tenant.service.ts'
+import {
+  tenantService,
+  type CreateTenantPayload,
+  type TenantDailyStatsQuery,
+  type TenantSortField,
+} from './tenant.service.ts'
 
 export const tenantQueryKeys = {
   all: ['tenants'] as const,
   lists: () => [...tenantQueryKeys.all, 'list'] as const,
   list: (page: number, pageSize: number, sortBy: TenantSortField, sortDir: SortDirection) =>
     [...tenantQueryKeys.lists(), { page, pageSize, sortBy, sortDir }] as const,
+  dailyStats: (query: TenantDailyStatsQuery = {}) =>
+    [...tenantQueryKeys.all, 'daily-stats', query] as const,
   details: () => [...tenantQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...tenantQueryKeys.details(), id] as const,
 }
@@ -28,6 +35,13 @@ export function useTenantQuery(id: string | undefined) {
     queryKey: tenantQueryKeys.detail(id ?? ''),
     queryFn: ({ signal }) => tenantService.getById(id ?? '', signal),
     enabled: Boolean(id),
+  })
+}
+
+export function useTenantDailyStatsQuery(query: TenantDailyStatsQuery = {}) {
+  return useQuery({
+    queryKey: tenantQueryKeys.dailyStats(query),
+    queryFn: ({ signal }) => tenantService.getDailyStats(query, signal),
   })
 }
 

@@ -54,6 +54,12 @@ export const TenantDetailPage = lazy(() =>
   })),
 )
 
+export const TenantsCreatedAtAccountPage = lazy(() =>
+  import('../../pages/tenants/tenants-created-at-account-page.tsx').then((module) => ({
+    default: module.TenantsCreatedAtAccountPage,
+  })),
+)
+
 export const TenantsPage = lazy(() =>
   import('../../pages/tenants/tenants-page.tsx').then((module) => ({
     default: module.TenantsPage,

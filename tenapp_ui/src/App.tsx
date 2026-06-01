@@ -12,6 +12,7 @@ import {
   ResetPasswordPage,
   SettingsPage,
   TenantDetailPage,
+  TenantsCreatedAtAccountPage,
   TenantsPage,
 } from './common/routes/lazy-pages.ts'
 import { AppLayout } from './components/layout-components/layout/app-layout.tsx'
@@ -74,6 +75,7 @@ function App() {
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/properties/:id" element={<PropertyDetailPage />} />
             <Route path="/tenants" element={<TenantsPage />} />
+            <Route path="/tenants-created-at-account" element={<TenantsCreatedAtAccountPage />} />
             <Route path="/tenants/:id" element={<TenantDetailPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
