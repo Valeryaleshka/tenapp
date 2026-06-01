@@ -1,5 +1,5 @@
 import type { NavigationLink } from '../../../common/interfaces/links.ts'
-import { LuBuilding2, LuCalendarDays, LuUsersRound } from 'react-icons/lu'
+import { LuBuilding2, LuUsersRound } from 'react-icons/lu'
 
 export const navigationLinks: NavigationLink[] = [
   {
@@ -11,10 +11,5 @@ export const navigationLinks: NavigationLink[] = [
     path: '/tenants',
     label: 'Tenants',
     icon: LuUsersRound,
-  },
-  {
-    path: '/tenants-created-at-account',
-    label: 'Tenant Accounts',
-    icon: LuCalendarDays,
   },
 ]
