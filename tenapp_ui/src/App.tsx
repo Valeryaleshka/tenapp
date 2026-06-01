@@ -4,6 +4,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import './App.css'
 import {
   AboutPage,
+  CountPage,
   ForgotPasswordPage,
   LoginPage,
   PropertyDetailPage,
@@ -71,6 +72,7 @@ function App() {
 
         <Route element={<RequireAuth />}>
           <Route element={<AppLayout />}>
+            <Route path="/count" element={<CountPage />} />
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/properties/:id" element={<PropertyDetailPage />} />
             <Route path="/tenants" element={<TenantsPage />} />

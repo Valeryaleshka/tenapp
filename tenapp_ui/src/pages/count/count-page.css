@@ -1,0 +1,36 @@
+.count-page-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.count-summary-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  min-height: 140px;
+  padding: 1.25rem;
+}
+
+.count-summary-icon {
+  align-items: center;
+  background: #e7f1ff;
+  border-radius: 8px;
+  color: #0d6efd;
+  display: inline-flex;
+  flex: 0 0 3rem;
+  font-size: 1.5rem;
+  height: 3rem;
+  justify-content: center;
+  width: 3rem;
+}
+
+.count-summary-value {
+  color: #212529;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}

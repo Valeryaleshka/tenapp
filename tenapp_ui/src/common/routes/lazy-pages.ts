@@ -6,6 +6,12 @@ export const AboutPage = lazy(() =>
   })),
 )
 
+export const CountPage = lazy(() =>
+  import('../../pages/count/count-page.tsx').then((module) => ({
+    default: module.CountPage,
+  })),
+)
+
 export const ForgotPasswordPage = lazy(() =>
   import('../../pages/login/forgot-password/forgot-password-page.tsx').then((module) => ({
     default: module.ForgotPasswordPage,
