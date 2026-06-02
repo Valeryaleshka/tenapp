@@ -48,12 +48,6 @@ export const SettingsPage = lazy(() =>
   })),
 )
 
-export const TestreviewPage = lazy(() =>
-  import('../../pages/testreview/testreview-page.tsx').then((module) => ({
-    default: module.TestreviewPage,
-  })),
-)
-
 export const TenantDetailPage = lazy(() =>
   import('../../pages/tenants/tenant-detail-page.tsx').then((module) => ({
     default: module.TenantDetailPage,

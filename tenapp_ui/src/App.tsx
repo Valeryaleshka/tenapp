@@ -13,7 +13,6 @@ import {
   SettingsPage,
   TenantDetailPage,
   TenantsPage,
-  TestreviewPage,
 } from './common/routes/lazy-pages.ts'
 import { AppLayout } from './components/layout-components/layout/app-layout.tsx'
 import { AuthLayout } from './components/layout-components/auth-layout/auth-layout.tsx'
@@ -76,7 +75,6 @@ function App() {
             <Route path="/properties/:id" element={<PropertyDetailPage />} />
             <Route path="/tenants" element={<TenantsPage />} />
             <Route path="/tenants/:id" element={<TenantDetailPage />} />
-            <Route path="/testreview" element={<TestreviewPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Route>
