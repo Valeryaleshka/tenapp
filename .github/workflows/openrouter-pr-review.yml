@@ -1,0 +1,40 @@
+name: OpenRouter PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  openrouter-review:
+    name: OpenRouter review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout pull request
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install OpenRouter SDK
+        run: npm install --no-save @openrouter/sdk
+
+      - name: Review pull request
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: openai/gpt-oss-120b:free
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/openrouter-pr-review.mjs

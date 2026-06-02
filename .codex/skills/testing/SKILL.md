@@ -1,4 +1,4 @@
-﻿---
+---
 name: testing
 description: Verification and testing guidance for the tenapp monorepo. Use after backend or frontend behavior changes, when adding tests, when deciding which checks to run, or when reporting skipped, failed, or environment-blocked validation.
 ---
