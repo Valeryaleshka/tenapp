@@ -67,9 +67,11 @@ const openrouter = new OpenRouter({
 })
 
 const stream = await openrouter.chat.send({
-  model,
-  messages: [{ role: 'user', content: prompt }],
-  stream: true,
+  chatRequest: {
+    model,
+    messages: [{ role: 'user', content: prompt }],
+    stream: true,
+  },
 })
 
 let review = ''
