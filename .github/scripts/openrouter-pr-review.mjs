@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { appendFileSync, readFileSync } from 'node:fs'
 import { OpenRouter } from '@openrouter/sdk'
 
 const marker = '<!-- openrouter-pr-review -->'
@@ -120,21 +120,34 @@ async function githubRequest(path, options = {}) {
   return response.status === 204 ? null : response.json()
 }
 
-const comments = await githubRequest(
-  `/repos/${owner}/${repo}/issues/${pullRequest.number}/comments?per_page=100`,
-)
-const previousComment = comments.find((comment) => comment.body?.startsWith(marker))
+function writeStepSummary(markdown) {
+  if (!process.env.GITHUB_STEP_SUMMARY) {
+    return
+  }
 
-if (previousComment) {
-  await githubRequest(`/repos/${owner}/${repo}/issues/comments/${previousComment.id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body }),
-  })
-} else {
-  await githubRequest(`/repos/${owner}/${repo}/issues/${pullRequest.number}/comments`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body }),
-  })
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${markdown}\n`)
+}
+
+try {
+  const comments = await githubRequest(
+    `/repos/${owner}/${repo}/issues/${pullRequest.number}/comments?per_page=100`,
+  )
+  const previousComment = comments.find((comment) => comment.body?.startsWith(marker))
+
+  if (previousComment) {
+    await githubRequest(`/repos/${owner}/${repo}/issues/comments/${previousComment.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    })
+  } else {
+    await githubRequest(`/repos/${owner}/${repo}/issues/${pullRequest.number}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    })
+  }
+} catch (error) {
+  writeStepSummary(body)
+  console.warn(`Could not post PR comment. Wrote review to job summary instead. ${error.message}`)
 }
