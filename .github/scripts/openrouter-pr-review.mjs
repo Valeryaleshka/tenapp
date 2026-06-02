@@ -151,7 +151,6 @@ for await (const chunk of stream) {
   const content = chunk.choices[0]?.delta?.content
   if (content) {
     review += content
-    process.stdout.write(content)
   }
 
   if (chunk.usage) {
@@ -162,6 +161,17 @@ for await (const chunk of stream) {
 if (!review.trim()) {
   throw new Error('OpenRouter returned an empty review')
 }
+
+function formatForActionsLog(text) {
+  return text
+    .split('\n')
+    .map((line) => (line.startsWith('::') ? `: ${line.slice(1)}` : line))
+    .join('\n')
+}
+
+process.stdout.write('::group::OpenRouter LLM response\n')
+process.stdout.write(`${formatForActionsLog(review)}\n`)
+process.stdout.write('::endgroup::\n')
 
 function extractJson(text) {
   const trimmed = text.trim()
