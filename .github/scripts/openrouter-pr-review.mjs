@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process'
-import { randomUUID } from 'node:crypto'
 import { appendFileSync, readFileSync } from 'node:fs'
 import { OpenRouter } from '@openrouter/sdk'
 import { jsonrepair } from 'jsonrepair'
@@ -147,32 +146,32 @@ const stream = await openrouter.chat.send({
 
 let review = ''
 let reasoningTokens
-const logCommandToken = `openrouter-pr-review-${randomUUID()}`
 
-process.stdout.write('::group::OpenRouter LLM response\n')
-process.stdout.write(`::stop-commands::${logCommandToken}\n`)
-
-try {
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content
-    if (content) {
-      review += content
-      process.stdout.write(content)
-    }
-
-    if (chunk.usage) {
-      reasoningTokens = chunk.usage.reasoningTokens
-    }
+for await (const chunk of stream) {
+  const content = chunk.choices[0]?.delta?.content
+  if (content) {
+    review += content
   }
-} finally {
-  process.stdout.write('\n')
-  process.stdout.write(`::${logCommandToken}::\n`)
-  process.stdout.write('::endgroup::\n')
+
+  if (chunk.usage) {
+    reasoningTokens = chunk.usage.reasoningTokens
+  }
 }
 
 if (!review.trim()) {
   throw new Error('OpenRouter returned an empty review')
 }
+
+function formatForActionsLog(text) {
+  return text
+    .split('\n')
+    .map((line) => (line.startsWith('::') ? `: ${line.slice(1)}` : line))
+    .join('\n')
+}
+
+process.stdout.write('::group::OpenRouter LLM response\n')
+process.stdout.write(`${formatForActionsLog(review)}\n`)
+process.stdout.write('::endgroup::\n')
 
 function extractJson(text) {
   const trimmed = text.trim()
