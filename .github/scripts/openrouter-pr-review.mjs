@@ -23,21 +23,29 @@ if (!pullRequest) {
 
 const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
 const model = process.env.OPENROUTER_MODEL || 'openai/gpt-oss-120b:free'
-const baseSha = pullRequest.base.sha
+const comparisonBaseRef = process.env.PR_REVIEW_BASE_REF || 'main'
+const comparisonBaseRevision = `origin/${comparisonBaseRef}`
 const headSha = pullRequest.head.sha
 
 function git(args) {
   return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 })
 }
 
-git(['fetch', '--no-tags', 'origin', baseSha, headSha])
+git([
+  'fetch',
+  '--no-tags',
+  'origin',
+  `+refs/heads/${comparisonBaseRef}:refs/remotes/origin/${comparisonBaseRef}`,
+  headSha,
+])
 
-const diffStat = git(['diff', '--stat', `${baseSha}...${headSha}`])
+const diffRange = `${comparisonBaseRevision}...${headSha}`
+const diffStat = git(['diff', '--stat', diffRange])
 let diff = git([
   'diff',
   '--find-renames',
   '--diff-filter=ACMRTUXB',
-  `${baseSha}...${headSha}`,
+  diffRange,
 ])
 
 let truncated = false
@@ -92,7 +100,7 @@ const changedLinesByPath = collectChangedLines(diff)
 
 const prompt = `You are reviewing pull request #${pullRequest.number} in ${owner}/${repo}.
 
-Review only the changes shown below. Focus on bugs, regressions, security risks, missing tests, and maintainability issues. Do not suggest broad refactors unless they address a concrete risk.
+Review only the changes shown below. The diff is always computed against ${comparisonBaseRevision}. Focus on bugs, regressions, security risks, missing tests, and maintainability issues. Do not suggest broad refactors unless they address a concrete risk.
 
 Return only valid JSON with this exact shape:
 {
@@ -205,6 +213,7 @@ const body = `${marker}
 ## OpenRouter PR Review
 
 Model: \`${model}\`${truncated ? `\n\nNote: diff was truncated to ${maxDiffCharacters} characters.` : ''}
+Base: \`${comparisonBaseRevision}\`
 ${typeof reasoningTokens === 'number' ? `\n\nReasoning tokens: ${reasoningTokens}` : ''}
 
 ${summary}
