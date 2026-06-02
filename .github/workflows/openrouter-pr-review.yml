@@ -30,7 +30,7 @@ jobs:
           node-version: 22
 
       - name: Install OpenRouter SDK
-        run: npm install --no-save @openrouter/sdk
+        run: npm install --no-save @openrouter/sdk jsonrepair
 
       - name: Review pull request
         env:

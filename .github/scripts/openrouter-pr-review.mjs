@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { appendFileSync, readFileSync } from 'node:fs'
 import { OpenRouter } from '@openrouter/sdk'
+import { jsonrepair } from 'jsonrepair'
 
 const marker = '<!-- openrouter-pr-review -->'
 const inlineMarker = '<!-- openrouter-pr-review-inline -->'
@@ -102,7 +103,7 @@ const prompt = `You are reviewing pull request #${pullRequest.number} in ${owner
 
 Review only the changes shown below. The diff is always computed against ${comparisonBaseRevision}. Focus on bugs, regressions, security risks, missing tests, and maintainability issues. Do not suggest broad refactors unless they address a concrete risk.
 
-Return only valid JSON with this exact shape:
+Return only valid JSON with this exact shape. Escape any double quotes that appear inside JSON string values:
 {
   "summary": "short review summary",
   "residualRisk": "short residual test or review risk",
@@ -138,6 +139,7 @@ const stream = await openrouter.chat.send({
   chatRequest: {
     model,
     messages: [{ role: 'user', content: prompt }],
+    response_format: { type: 'json_object' },
     stream: true,
   },
 })
@@ -165,7 +167,12 @@ function extractJson(text) {
   const trimmed = text.trim()
   const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
   const jsonText = fencedMatch ? fencedMatch[1] : trimmed
-  return JSON.parse(jsonText)
+
+  try {
+    return JSON.parse(jsonText)
+  } catch {
+    return JSON.parse(jsonrepair(jsonText))
+  }
 }
 
 function normalizeFinding(finding) {
