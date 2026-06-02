@@ -3,7 +3,9 @@ import { appendFileSync, readFileSync } from 'node:fs'
 import { OpenRouter } from '@openrouter/sdk'
 
 const marker = '<!-- openrouter-pr-review -->'
+const inlineMarker = '<!-- openrouter-pr-review-inline -->'
 const maxDiffCharacters = 60000
+const maxInlineComments = 20
 
 const requiredEnv = ['GITHUB_EVENT_PATH', 'GITHUB_REPOSITORY', 'GITHUB_TOKEN', 'OPENROUTER_API_KEY']
 for (const name of requiredEnv) {
@@ -44,11 +46,69 @@ if (diff.length > maxDiffCharacters) {
   truncated = true
 }
 
+function collectChangedLines(patch) {
+  const changedLinesByPath = new Map()
+  let currentPath = null
+  let newLine = 0
+
+  for (const line of patch.split('\n')) {
+    if (line.startsWith('+++ b/')) {
+      currentPath = line.slice('+++ b/'.length)
+
+      if (!changedLinesByPath.has(currentPath)) {
+        changedLinesByPath.set(currentPath, new Set())
+      }
+
+      continue
+    }
+
+    if (line.startsWith('@@')) {
+      const match = line.match(/\+(\d+)(?:,(\d+))?/)
+      newLine = match ? Number(match[1]) : 0
+      continue
+    }
+
+    if (!currentPath || !newLine || line.startsWith('\\')) {
+      continue
+    }
+
+    if (line.startsWith('+') && !line.startsWith('+++')) {
+      changedLinesByPath.get(currentPath)?.add(newLine)
+      newLine += 1
+      continue
+    }
+
+    if (line.startsWith('-') && !line.startsWith('---')) {
+      continue
+    }
+
+    newLine += 1
+  }
+
+  return changedLinesByPath
+}
+
+const changedLinesByPath = collectChangedLines(diff)
+
 const prompt = `You are reviewing pull request #${pullRequest.number} in ${owner}/${repo}.
 
 Review only the changes shown below. Focus on bugs, regressions, security risks, missing tests, and maintainability issues. Do not suggest broad refactors unless they address a concrete risk.
 
-Return concise Markdown. If there are findings, list them first with severity and file path. If there are no material findings, say that clearly and mention any residual test risk.
+Return only valid JSON with this exact shape:
+{
+  "summary": "short review summary",
+  "residualRisk": "short residual test or review risk",
+  "findings": [
+    {
+      "severity": "critical" | "high" | "medium" | "low",
+      "path": "path/from/repo/root",
+      "line": 123,
+      "body": "concise Markdown comment explaining the issue and concrete fix"
+    }
+  ]
+}
+
+Only include findings that can be tied to a changed added line in the diff. Use "critical" only for issues that should block merging because they are likely to cause production breakage, data loss, security exposure, auth bypass, secret leakage, or a severe regression. If there are no material findings, return an empty findings array.
 
 Title:
 ${pullRequest.title}
@@ -93,13 +153,64 @@ if (!review.trim()) {
   throw new Error('OpenRouter returned an empty review')
 }
 
+function extractJson(text) {
+  const trimmed = text.trim()
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  const jsonText = fencedMatch ? fencedMatch[1] : trimmed
+  return JSON.parse(jsonText)
+}
+
+function normalizeFinding(finding) {
+  if (!finding || typeof finding !== 'object') {
+    return null
+  }
+
+  const severity = String(finding.severity || '').toLowerCase()
+  const path = String(finding.path || '').trim()
+  const line = Number(finding.line)
+  const body = String(finding.body || '').trim()
+
+  if (!['critical', 'high', 'medium', 'low'].includes(severity) || !path || !line || !body) {
+    return null
+  }
+
+  if (!changedLinesByPath.get(path)?.has(line)) {
+    return null
+  }
+
+  return { severity, path, line, body }
+}
+
+let parsedReview
+try {
+  parsedReview = extractJson(review)
+} catch (error) {
+  throw new Error(`OpenRouter returned invalid JSON: ${error.message}`)
+}
+
+const summary =
+  typeof parsedReview.summary === 'string' && parsedReview.summary.trim()
+    ? parsedReview.summary.trim()
+    : 'OpenRouter completed the PR review.'
+const residualRisk =
+  typeof parsedReview.residualRisk === 'string' && parsedReview.residualRisk.trim()
+    ? parsedReview.residualRisk.trim()
+    : ''
+const findings = Array.isArray(parsedReview.findings)
+  ? parsedReview.findings.map(normalizeFinding).filter(Boolean).slice(0, maxInlineComments)
+  : []
+const hasCriticalFinding = findings.some((finding) => finding.severity === 'critical')
+
 const body = `${marker}
 ## OpenRouter PR Review
 
 Model: \`${model}\`${truncated ? `\n\nNote: diff was truncated to ${maxDiffCharacters} characters.` : ''}
 ${typeof reasoningTokens === 'number' ? `\n\nReasoning tokens: ${reasoningTokens}` : ''}
 
-${review.trim()}`
+${summary}
+${residualRisk ? `\nResidual risk: ${residualRisk}` : ''}
+${findings.length ? `\nInline findings: ${findings.length}` : '\nNo material inline findings.'}
+${hasCriticalFinding ? '\n\nCritical issues were found. This check is failing to block merge.' : ''}`
 
 async function githubRequest(path, options = {}) {
   const response = await fetch(`https://api.github.com${path}`, {
@@ -129,25 +240,47 @@ function writeStepSummary(markdown) {
 }
 
 try {
-  const comments = await githubRequest(
+  const reviewComments = await githubRequest(
+    `/repos/${owner}/${repo}/pulls/${pullRequest.number}/comments?per_page=100`,
+  )
+
+  for (const comment of reviewComments.filter((comment) => comment.body?.startsWith(inlineMarker))) {
+    await githubRequest(`/repos/${owner}/${repo}/pulls/comments/${comment.id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  await githubRequest(`/repos/${owner}/${repo}/pulls/${pullRequest.number}/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      commit_id: headSha,
+      body,
+      event: hasCriticalFinding ? 'REQUEST_CHANGES' : 'COMMENT',
+      comments: findings.map((finding) => ({
+        path: finding.path,
+        line: finding.line,
+        side: 'RIGHT',
+        body: `${inlineMarker}\n**${finding.severity.toUpperCase()}** ${finding.body}`,
+      })),
+    }),
+  })
+
+  const issueComments = await githubRequest(
     `/repos/${owner}/${repo}/issues/${pullRequest.number}/comments?per_page=100`,
   )
-  const previousComment = comments.find((comment) => comment.body?.startsWith(marker))
+  const previousSummaryComment = issueComments.find((comment) => comment.body?.startsWith(marker))
 
-  if (previousComment) {
-    await githubRequest(`/repos/${owner}/${repo}/issues/comments/${previousComment.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body }),
-    })
-  } else {
-    await githubRequest(`/repos/${owner}/${repo}/issues/${pullRequest.number}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body }),
+  if (previousSummaryComment) {
+    await githubRequest(`/repos/${owner}/${repo}/issues/comments/${previousSummaryComment.id}`, {
+      method: 'DELETE',
     })
   }
 } catch (error) {
   writeStepSummary(body)
-  console.warn(`Could not post PR comment. Wrote review to job summary instead. ${error.message}`)
+  console.warn(`Could not post PR review. Wrote review to job summary instead. ${error.message}`)
+}
+
+if (hasCriticalFinding) {
+  throw new Error('OpenRouter found critical PR review issues')
 }
