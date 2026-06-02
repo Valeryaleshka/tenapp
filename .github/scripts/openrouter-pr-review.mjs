@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { appendFileSync, readFileSync } from 'node:fs'
 import { OpenRouter } from '@openrouter/sdk'
 import { jsonrepair } from 'jsonrepair'
@@ -146,17 +147,27 @@ const stream = await openrouter.chat.send({
 
 let review = ''
 let reasoningTokens
+const logCommandToken = `openrouter-pr-review-${randomUUID()}`
 
-for await (const chunk of stream) {
-  const content = chunk.choices[0]?.delta?.content
-  if (content) {
-    review += content
-    process.stdout.write(content)
-  }
+process.stdout.write('::group::OpenRouter LLM response\n')
+process.stdout.write(`::stop-commands::${logCommandToken}\n`)
 
-  if (chunk.usage) {
-    reasoningTokens = chunk.usage.reasoningTokens
+try {
+  for await (const chunk of stream) {
+    const content = chunk.choices[0]?.delta?.content
+    if (content) {
+      review += content
+      process.stdout.write(content)
+    }
+
+    if (chunk.usage) {
+      reasoningTokens = chunk.usage.reasoningTokens
+    }
   }
+} finally {
+  process.stdout.write('\n')
+  process.stdout.write(`::${logCommandToken}::\n`)
+  process.stdout.write('::endgroup::\n')
 }
 
 if (!review.trim()) {
