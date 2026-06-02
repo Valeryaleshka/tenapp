@@ -30,11 +30,12 @@ jobs:
           node-version: 22
 
       - name: Install OpenRouter SDK
-        run: npm install --no-save @openrouter/sdk
+        run: npm install --no-save @openrouter/sdk jsonrepair
 
       - name: Review pull request
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: openai/gpt-oss-120b:free
+          PR_REVIEW_BASE_REF: main
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/scripts/openrouter-pr-review.mjs
