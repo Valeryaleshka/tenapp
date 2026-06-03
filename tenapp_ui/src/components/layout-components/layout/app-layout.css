@@ -1,9 +1,7 @@
 .app-shell {
   min-height: 100vh;
   min-height: 100dvh;
-  background:
-    radial-gradient(1000px 600px at -10% -20%, #dbe9f7 0%, transparent 60%),
-    radial-gradient(900px 500px at 120% 0%, #e8f4fd 0%, transparent 60%), var(--app-bg);
+  background: var(--app-bg);
 }
 
 .app-sidebar {
@@ -31,6 +29,7 @@
 .app-content {
   overflow-x: auto;
   color: var(--app-text);
+  background: var(--app-page-bg);
   padding-top: 82px;
 }
 

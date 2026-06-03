@@ -1,0 +1,25 @@
+.property-status-cell {
+  text-align: center;
+}
+
+.property-status-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.property-status-dot-occupied {
+  background: #198754;
+}
+
+.property-status-dot-expiring {
+  background: #ffc107;
+}
+
+.property-status-dot-available {
+  background: var(--app-accent);
+}

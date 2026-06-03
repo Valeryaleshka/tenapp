@@ -10,6 +10,7 @@ import {
   type SortDirection,
 } from '../../../common/services/sort/sort.service.ts'
 import { useTenantsQuery } from '../services/tenant.queries.ts'
+import './tenant-table.css'
 
 export function TenantTable() {
   const navigate = useNavigate()
@@ -88,6 +89,7 @@ export function TenantTable() {
                   onSort={applySort}
                 />
               </th>
+              <th className="tenant-status-cell">Status</th>
               <th>Phone</th>
               <th className="d-none d-md-table-cell">Email</th>
               <th className="d-none d-md-table-cell">Assigned Property</th>
@@ -96,26 +98,38 @@ export function TenantTable() {
             </tr>
           </thead>
           <tbody>
-            {tenants.map((tenant) => (
-              <tr
-                key={tenant.id}
-                className={tenant.assignedProperties.length > 0 ? 'table-info' : ''}
-              >
-                <td>{tenant.firstName}</td>
-                <td>{tenant.lastName}</td>
-                <td>{tenant.phoneNumber}</td>
-                <td className="d-none d-md-table-cell">{tenant.email}</td>
-                <td className="d-none d-md-table-cell">
-                  {tenant.assignedProperties.join(', ') || 'Unassigned'}
-                </td>
-                <td className="d-none d-md-table-cell">
-                  {new Date(tenant.createdAt).toLocaleDateString()}
-                </td>
-                <td className="table-action-col">
-                  <Button onClick={() => navigate(`/tenants/${tenant.id}`)}>Details</Button>
-                </td>
-              </tr>
-            ))}
+            {tenants.map((tenant) => {
+              const isAssigned = tenant.assignedProperties.length > 0
+
+              return (
+                <tr key={tenant.id}>
+                  <td>{tenant.firstName}</td>
+                  <td>{tenant.lastName}</td>
+                  <td className="tenant-status-cell">
+                    <span
+                      className={
+                        isAssigned
+                          ? 'tenant-status-dot tenant-status-dot-assigned'
+                          : 'tenant-status-dot tenant-status-dot-unassigned'
+                      }
+                      title={isAssigned ? 'Assigned' : 'Unassigned'}
+                      aria-label={isAssigned ? 'Assigned' : 'Unassigned'}
+                    />
+                  </td>
+                  <td>{tenant.phoneNumber}</td>
+                  <td className="d-none d-md-table-cell">{tenant.email}</td>
+                  <td className="d-none d-md-table-cell">
+                    {tenant.assignedProperties.join(', ') || 'Unassigned'}
+                  </td>
+                  <td className="d-none d-md-table-cell">
+                    {new Date(tenant.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="table-action-col">
+                    <Button onClick={() => navigate(`/tenants/${tenant.id}`)}>Details</Button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </Table>
       </LoadingWrapper>
