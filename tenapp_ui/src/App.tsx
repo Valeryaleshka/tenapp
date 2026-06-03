@@ -41,7 +41,7 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="container vh-100 d-flex justify-content-center align-items-center">
+      <div className="app-loading container d-flex justify-content-center align-items-center">
         <Spinner
           animation="border"
           variant="primary"
