@@ -1,5 +1,5 @@
 .app-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(1000px 600px at -10% -20%, #dbe9f7 0%, transparent 60%),
     radial-gradient(900px 500px at 120% 0%, #e8f4fd 0%, transparent 60%), var(--app-bg);
@@ -22,7 +22,7 @@
   min-width: 0;
   width: 100%;
   margin-left: 250px;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-content {
