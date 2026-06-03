@@ -1,5 +1,5 @@
-@import 'src/styles/bootstrap-overrride/index.css';
-@import 'src/styles/text/index.css';
+@import './styles/bootstrap-overrride/index.css';
+@import './styles/text/index.css';
 
 :root {
   --app-bg: #eef4fb;

@@ -2,10 +2,11 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
 
 COPY . .
-RUN npm run build
+RUN npm run typecheck
+RUN npm run build:vite
 
 FROM nginx:alpine
 ENV API_UPSTREAM=api:8080
