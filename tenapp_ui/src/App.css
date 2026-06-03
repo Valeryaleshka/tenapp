@@ -17,3 +17,8 @@
   display: block;
   position: relative;
 }
+
+.app-loading {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
