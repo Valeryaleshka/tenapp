@@ -125,6 +125,59 @@ public class PropertiesController : ControllerBase
         return Ok(property);
     }
 
+    [HttpGet("select")]
+    public async Task<ActionResult<IEnumerable<PropertySelectDto>>> GetForSelect(
+        [FromQuery] string? search = null,
+        [FromQuery] int limit = 50,
+        [FromQuery] Guid? selectedPropertyId = null)
+    {
+        if (!_currentUserService.TryGetUserId(out var userId))
+            return Unauthorized("Invalid access token");
+
+        limit = Math.Clamp(limit, 1, 100);
+
+        var query = _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchTerm = search.Trim().ToLower();
+            query = query.Where(p =>
+                p.Name.ToLower().Contains(searchTerm) ||
+                p.Address.ToLower().Contains(searchTerm));
+        }
+
+        var properties = await query
+            .OrderBy(p => p.Name)
+            .ThenBy(p => p.Address)
+            .Take(limit)
+            .Select(p => new PropertySelectDto
+            {
+                Id = p.Id,
+                Name = p.Name + " - " + p.Address
+            })
+            .ToListAsync();
+
+        if (selectedPropertyId.HasValue && properties.All(p => p.Id != selectedPropertyId.Value))
+        {
+            var selectedProperty = await _dbContext.Properties
+                .AsNoTracking()
+                .Where(p => p.UserId == userId && p.Id == selectedPropertyId.Value)
+                .Select(p => new PropertySelectDto
+                {
+                    Id = p.Id,
+                    Name = p.Name + " - " + p.Address
+                })
+                .FirstOrDefaultAsync();
+
+            if (selectedProperty != null)
+                properties.Insert(0, selectedProperty);
+        }
+
+        return Ok(properties);
+    }
+
     [HttpPost]
     public async Task<ActionResult<PropertyResponseDto>> Create(CreatePropertyDto dto)
     {
@@ -245,4 +298,5 @@ public class PropertiesController : ControllerBase
             TenantFullName = tenant == null ? null : $"{tenant.FirstName} {tenant.LastName}"
         };
     }
+
 }

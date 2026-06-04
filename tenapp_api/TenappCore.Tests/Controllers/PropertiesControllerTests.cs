@@ -85,6 +85,40 @@ public class PropertiesControllerTests
     }
 
     [Fact]
+    public async Task GetForSelect_ScopesResultsToCurrentUserAndSearches()
+    {
+        await using var dbContext = TestHelpers.CreateDbContext();
+        var userId = Guid.NewGuid();
+        var selected = CreateProperty(userId, "Selected Home");
+        dbContext.Properties.AddRange(
+            CreateProperty(userId, "Alpha House"),
+            CreateProperty(userId, "Beta Condo"),
+            selected,
+            CreateProperty(Guid.NewGuid(), "Alpha Other User"));
+        await dbContext.SaveChangesAsync();
+        var controller = new PropertiesController(dbContext, new FakeCurrentUserService(userId));
+
+        var result = await controller.GetForSelect(search: "alpha", selectedPropertyId: selected.Id);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var properties = Assert.IsAssignableFrom<IEnumerable<PropertySelectDto>>(ok.Value).ToList();
+        Assert.Contains(properties, p => p.Id == selected.Id);
+        Assert.Contains(properties, p => p.Name.StartsWith("Alpha House"));
+        Assert.DoesNotContain(properties, p => p.Name.StartsWith("Alpha Other User"));
+    }
+
+    [Fact]
+    public async Task GetForSelect_ReturnsUnauthorizedWithoutCurrentUser()
+    {
+        await using var dbContext = TestHelpers.CreateDbContext();
+        var controller = new PropertiesController(dbContext, new FakeCurrentUserService(null));
+
+        var result = await controller.GetForSelect();
+
+        Assert.IsType<UnauthorizedObjectResult>(result.Result);
+    }
+
+    [Fact]
     public async Task Create_ValidatesInputsAndSelectedTenant()
     {
         await using var dbContext = TestHelpers.CreateDbContext();

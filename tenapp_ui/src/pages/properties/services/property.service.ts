@@ -8,6 +8,7 @@ import type {
   PropertySortField,
   PropertyUpsertPayload,
 } from './property.interfaces.ts'
+import type { PropertySelect, PropertySelectQuery } from './property-select.interfaces.ts'
 
 export const propertyService = {
   getAll: async (
@@ -32,6 +33,21 @@ export const propertyService = {
 
   add: async (property: PropertyUpsertPayload): Promise<Property> => {
     const response = await ApiClient.post<Property>('/properties', property)
+    return response.data
+  },
+
+  getForSelect: async (
+    query: PropertySelectQuery = {},
+    signal?: AbortSignal,
+  ): Promise<PropertySelect[]> => {
+    const response = await ApiClient.get<PropertySelect[]>('/properties/select', {
+      signal,
+      params: {
+        search: query.search || undefined,
+        limit: query.limit,
+        selectedPropertyId: query.selectedPropertyId || undefined,
+      },
+    })
     return response.data
   },
 

@@ -15,5 +15,5 @@ public class User
     public DateTime? PasswordResetTokenExpiresAt { get; set; }
     public List<Property> Properties { get; set; } = [];
     public List<Tenant> Tenants { get; set; } = [];
+    public List<Transaction> Transactions { get; set; } = [];
 }
-
