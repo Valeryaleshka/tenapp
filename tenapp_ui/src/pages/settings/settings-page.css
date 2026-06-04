@@ -10,6 +10,40 @@
   padding: 1.25rem;
 }
 
+.settings-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.settings-logo-preview {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  background: #f3f6f4;
+  color: #244136;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.settings-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.settings-logo-controls {
+  width: min(100%, 28rem);
+}
+
 .settings-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -19,5 +53,12 @@
 @media (max-width: 991.98px) {
   .settings-form-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .settings-logo-section {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

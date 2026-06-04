@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { Alert, Button, Card, Form } from 'react-bootstrap'
 import { useForm, type SubmitHandler } from 'react-hook-form'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { AuthService, type ResetPasswordPayload } from '../../../context/auth/services/authService.ts'
+import {
+  AuthService,
+  type ResetPasswordPayload,
+} from '../../../context/auth/services/authService.ts'
 
 type ResetPasswordFormValues = Omit<ResetPasswordPayload, 'token'>
 

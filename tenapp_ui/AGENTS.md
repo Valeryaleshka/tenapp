@@ -3,6 +3,7 @@
 Applies to the frontend app in `tenapp_ui`.
 
 ## Frontend Rules
+
 - Use the React, TypeScript, and Testing skills for implementation guidance.
 - Keep pages/routes thin. Put UI in components, logic in hooks, and API calls in `src/services/*`.
 - Model backend API payloads with explicit TypeScript interfaces matching backend JSON.

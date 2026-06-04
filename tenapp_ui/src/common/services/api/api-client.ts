@@ -37,10 +37,20 @@ const refreshAuth = async (): Promise<void> => {
 
 const request = async <T>(path: string, config: ApiRequestConfig): Promise<ApiResponse<T>> => {
   const url = buildUrl(path, config.params)
+  const requestBody = config.body
+  const isFormData = requestBody instanceof FormData
+  let body: BodyInit | undefined
+
+  if (isFormData) {
+    body = requestBody
+  } else if (requestBody !== undefined) {
+    body = JSON.stringify(requestBody)
+  }
+
   const response = await fetch(url, {
-    body: config.body === undefined ? undefined : JSON.stringify(config.body),
+    body,
     credentials: 'include',
-    headers: JSON_HEADERS,
+    headers: isFormData ? undefined : JSON_HEADERS,
     method: config.method,
     signal: config.signal,
   })

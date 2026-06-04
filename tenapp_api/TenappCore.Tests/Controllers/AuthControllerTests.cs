@@ -83,9 +83,11 @@ public class AuthControllerTests
             FirstName = "Me",
             SecondName = "User"
         });
+        var logo = await controller.UploadLogo(TestHelpers.CreateFormFile(), CancellationToken.None);
 
         Assert.Equal("me@test.local", TestHelpers.ValueFromOk(me).Email);
         Assert.Equal("me@test.local", TestHelpers.ValueFromOk(account).Email);
+        Assert.Equal("me@test.local", TestHelpers.ValueFromOk(logo).Email);
     }
 
     private static AuthController CreateController(FakeAuthService authService, Guid? userId = null)
@@ -109,6 +111,7 @@ public class AuthControllerTests
         public Task<AuthResult<UserResponseDto>> ResetPasswordAsync(ResetPasswordDto dto) => Task.FromResult(NextUserResult);
         public Task<AuthResult<UserResponseDto>> MeAsync(ClaimsPrincipal principal) => Task.FromResult(NextUserResult);
         public Task<AuthResult<UserResponseDto>> UpdateAccountAsync(ClaimsPrincipal principal, UpdateAccountDto dto) => Task.FromResult(NextUserResult);
+        public Task<AuthResult<UserResponseDto>> UploadLogoAsync(ClaimsPrincipal principal, IFormFile file, CancellationToken cancellationToken = default) => Task.FromResult(NextUserResult);
 
         public Task ForgotPasswordAsync(ForgotPasswordDto dto)
         {
@@ -123,4 +126,3 @@ public class AuthControllerTests
         }
     }
 }
-

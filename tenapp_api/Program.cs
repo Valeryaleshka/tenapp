@@ -5,12 +5,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using TenappCore.Configuration;
 using TenappCore.Data;
 using TenappCore.Infrastructure.Logging;
 using TenappCore.Models;
 using TenappCore.Services;
 using TenappCore.Services.Mailgun;
+using TenappCore.Services.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +45,21 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.Configure<MailgunOptions>(builder.Configuration.GetSection(MailgunOptions.SectionName));
+builder.Services.Configure<S3Options>(builder.Configuration.GetSection(S3Options.SectionName));
+builder.Services.AddSingleton<IAmazonS3>(provider =>
+{
+    var options = provider.GetRequiredService<IConfiguration>()
+        .GetSection(S3Options.SectionName)
+        .Get<S3Options>() ?? new S3Options();
+    var regionName = string.IsNullOrWhiteSpace(options.Region) ? "us-east-1" : options.Region;
+    var region = RegionEndpoint.GetBySystemName(regionName);
+
+    if (!string.IsNullOrWhiteSpace(options.AccessKeyId) && !string.IsNullOrWhiteSpace(options.SecretAccessKey))
+        return new AmazonS3Client(new BasicAWSCredentials(options.AccessKeyId, options.SecretAccessKey), region);
+
+    return new AmazonS3Client(region);
+});
+builder.Services.AddScoped<IS3ObjectStorageService, S3ObjectStorageService>();
 builder.Services.AddScoped<IMailgunService, MailgunService>();
 builder.Services.AddSingleton<EmailQueue>();
 builder.Services.AddSingleton<IEmailQueue>(provider => provider.GetRequiredService<EmailQueue>());

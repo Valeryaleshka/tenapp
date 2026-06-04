@@ -9,6 +9,7 @@ public class User
     public string FirstName { get; set; } = string.Empty;
     public string SecondName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public string? LogoUrl { get; set; }
     public string? RefreshToken { get; set; }
     public string? PasswordResetTokenHash { get; set; }
     public DateTime? PasswordResetTokenExpiresAt { get; set; }

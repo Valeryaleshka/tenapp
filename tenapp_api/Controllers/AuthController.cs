@@ -77,6 +77,15 @@ public class AuthController : ControllerBase
         return ToActionResult(result);
     }
 
+    [Authorize]
+    [HttpPost("account/logo")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<UserResponseDto>> UploadLogo(IFormFile file, CancellationToken cancellationToken)
+    {
+        var result = await _authService.UploadLogoAsync(User, file, cancellationToken);
+        return ToActionResult(result);
+    }
+
     private ActionResult<UserResponseDto> ToActionResult(AuthResult<UserResponseDto> result)
     {
         if (result.Success)

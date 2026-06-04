@@ -57,6 +57,20 @@ export const AuthService = {
     return user
   },
 
+  async uploadLogo(file: File): Promise<User> {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await ApiClient.post<unknown>('/auth/account/logo', formData)
+    const user = extractUser(response.data)
+
+    if (!user) {
+      throw new Error('Failed to upload account logo')
+    }
+
+    return user
+  },
+
   async forgotPassword(email: string): Promise<void> {
     await ApiClient.post('/auth/forgot-password', { email })
   },

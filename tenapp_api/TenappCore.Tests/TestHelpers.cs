@@ -10,6 +10,7 @@ using TenappCore.Data;
 using TenappCore.Models;
 using TenappCore.Services;
 using TenappCore.Services.Mailgun;
+using TenappCore.Services.Storage;
 
 namespace TenappCore.Tests;
 
@@ -85,6 +86,16 @@ internal static class TestHelpers
         var created = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
         return Assert.IsType<T>(created.Value);
     }
+
+    public static IFormFile CreateFormFile(string fileName = "logo.png", string contentType = "image/png")
+    {
+        var stream = new MemoryStream([1, 2, 3]);
+        return new FormFile(stream, 0, stream.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = contentType
+        };
+    }
 }
 
 internal sealed class FakeCurrentUserService : ICurrentUserService
@@ -148,3 +159,18 @@ internal sealed class FakeMailgunService : IMailgunService
     }
 }
 
+internal sealed class FakeS3ObjectStorageService : IS3ObjectStorageService
+{
+    public bool UploadCalled { get; private set; }
+    public Exception? ExceptionToThrow { get; set; }
+
+    public Task<string> UploadUserLogoAsync(Guid userId, IFormFile file, CancellationToken cancellationToken = default)
+    {
+        UploadCalled = true;
+
+        if (ExceptionToThrow != null)
+            throw ExceptionToThrow;
+
+        return Task.FromResult($"https://cdn.test/user-logos/{file.FileName}");
+    }
+}
