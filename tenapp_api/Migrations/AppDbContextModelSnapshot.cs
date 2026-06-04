@@ -22,6 +22,35 @@ namespace TenappCore.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TenappCore.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("categorys", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "rent"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "demage deposit"
+                        });
+                });
+
             modelBuilder.Entity("TenappCore.Models.Property", b =>
                 {
                     b.Property<Guid>("Id")
@@ -138,6 +167,57 @@ namespace TenappCore.Migrations
                     b.ToTable("tenant", (string)null);
                 });
 
+            modelBuilder.Entity("TenappCore.Models.Transaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<Guid>("PropertyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("property_id");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("TenantId");
+
+                    b.HasIndex("UserId", "Date");
+
+                    b.ToTable("transactions", (string)null);
+                });
+
             modelBuilder.Entity("TenappCore.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -233,6 +313,46 @@ namespace TenappCore.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TenappCore.Models.Transaction", b =>
+                {
+                    b.HasOne("TenappCore.Models.Category", "Category")
+                        .WithMany("Transactions")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TenappCore.Models.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TenappCore.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TenappCore.Models.User", "User")
+                        .WithMany("Transactions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Tenant");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TenappCore.Models.Category", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
             modelBuilder.Entity("TenappCore.Models.Tenant", b =>
                 {
                     b.Navigation("Properties");
@@ -243,6 +363,8 @@ namespace TenappCore.Migrations
                     b.Navigation("Properties");
 
                     b.Navigation("Tenants");
+
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Property> Properties { get; set; }
     public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -146,6 +148,75 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(e => new { e.UserId, e.CreatedAt });
             entity.HasIndex(e => new { e.UserId, e.Email });
+        });
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.ToTable("categorys");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedNever();
+            entity.Property(e => e.Name)
+                .HasColumnName("name")
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.HasData(
+                new Category { Id = 1, Name = "rent" },
+                new Category { Id = 2, Name = "demage deposit" });
+        });
+
+        modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.ToTable("transactions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.PropertyId)
+                .HasColumnName("property_id")
+                .IsRequired();
+            entity.Property(e => e.TenantId)
+                .HasColumnName("tenant_id")
+                .IsRequired();
+            entity.Property(e => e.Amount)
+                .HasColumnName("amount")
+                .HasColumnType("numeric(18,2)")
+                .IsRequired();
+            entity.Property(e => e.Date)
+                .HasColumnName("date")
+                .IsRequired();
+            entity.Property(e => e.CategoryId)
+                .HasColumnName("category_id")
+                .IsRequired();
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasDefaultValueSql("timezone('utc', now())");
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id")
+                .IsRequired();
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Transactions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Property)
+                .WithMany()
+                .HasForeignKey(e => e.PropertyId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Tenant)
+                .WithMany()
+                .HasForeignKey(e => e.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Category)
+                .WithMany(c => c.Transactions)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.UserId, e.Date });
+            entity.HasIndex(e => e.PropertyId);
+            entity.HasIndex(e => e.TenantId);
+            entity.HasIndex(e => e.CategoryId);
         });
     }
 }

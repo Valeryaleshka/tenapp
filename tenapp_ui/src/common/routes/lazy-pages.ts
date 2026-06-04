@@ -59,3 +59,9 @@ export const TenantsPage = lazy(() =>
     default: module.TenantsPage,
   })),
 )
+
+export const TransactionsPage = lazy(() =>
+  import('../../pages/transactions/transactions-page.tsx').then((module) => ({
+    default: module.TransactionsPage,
+  })),
+)
