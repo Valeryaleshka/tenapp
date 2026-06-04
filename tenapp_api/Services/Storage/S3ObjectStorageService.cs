@@ -2,6 +2,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
 using TenappCore.Configuration;
+using TenappCore.Services.Storage.helpers;
 
 namespace TenappCore.Services.Storage;
 
@@ -17,11 +18,13 @@ public class S3ObjectStorageService : IS3ObjectStorageService
 
     private readonly IAmazonS3 _s3Client;
     private readonly S3Options _options;
+    private readonly IS3UrlBuilder _urlBuilder;
 
-    public S3ObjectStorageService(IAmazonS3 s3Client, IOptions<S3Options> options)
+    public S3ObjectStorageService(IAmazonS3 s3Client, IOptions<S3Options> options, IS3UrlBuilder urlBuilder)
     {
         _s3Client = s3Client;
         _options = options.Value;
+        _urlBuilder = urlBuilder;
     }
 
     public async Task<string> UploadUserLogoAsync(Guid userId, IFormFile file, CancellationToken cancellationToken = default)
@@ -51,16 +54,7 @@ public class S3ObjectStorageService : IS3ObjectStorageService
 
         await _s3Client.PutObjectAsync(request, cancellationToken);
 
-        return BuildPublicUrl(key);
-    }
-
-    private string BuildPublicUrl(string key)
-    {
-        if (!string.IsNullOrWhiteSpace(_options.PublicBaseUrl))
-            return $"{_options.PublicBaseUrl.TrimEnd('/')}/{Uri.EscapeDataString(key).Replace("%2F", "/", StringComparison.OrdinalIgnoreCase)}";
-
-        var region = string.IsNullOrWhiteSpace(_options.Region) ? "us-east-1" : _options.Region;
-        return $"https://tenapp-logos.s3.{region}.amazonaws.com/{Uri.EscapeDataString(key).Replace("%2F", "/", StringComparison.OrdinalIgnoreCase)}";
+        return _urlBuilder.BuildPublicUrl("tenapp-logos", _options.Region, key);
     }
 
     private static string GetExtension(string contentType)
