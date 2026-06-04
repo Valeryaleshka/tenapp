@@ -135,10 +135,7 @@ public class AuthService : IAuthService
         var encodedToken = Uri.EscapeDataString(resetToken.RawToken);
         var resetUrl = $"{_passwordResetBaseUrl}?token={encodedToken}";
 
-        var message = new MailgunMessage(
-            To: user.Email,
-            Subject: "Tenapp Core password reset",
-            Text: $"Use this link to reset your password: {resetUrl}\nThe link expires in 1 hour.");
+        var message = EmailTemplates.PasswordReset(user, resetUrl);
 
         try
         {
@@ -302,10 +299,7 @@ public class AuthService : IAuthService
 
     private void QueueWelcomeEmail(User user)
     {
-        var message = new MailgunMessage(
-            To: user.Email,
-            Subject: "Welcome to Tenapp Core",
-            Text: $"Hello {user.FirstName}, welcome to Tenapp Core.");
+        var message = EmailTemplates.Welcome(user);
 
         _emailQueue.Enqueue(message);
     }

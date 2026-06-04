@@ -1,13 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace TenappCore.Services.Storage.helpers
 {
-    public interface IS3UrlBuilder
+    public interface IS3ServiceHelper
     {
         public string BuildPublicUrl(string bucket_name, string region,string key);
-        
+        public void ValidateLogoFile(IFormFile file);
     }
 }

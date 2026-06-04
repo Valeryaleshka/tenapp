@@ -28,7 +28,7 @@ public static class SingletonServiceRegistration
             return new AmazonS3Client(region);
         });
 
-        services.AddSingleton<IS3UrlBuilder, S3UrlBuilder>();
+        services.AddSingleton<IS3ServiceHelper, S3ServiceHelper>();
         services.AddSingleton<EmailQueue>();
         services.AddSingleton<IEmailQueue>(provider => provider.GetRequiredService<EmailQueue>());
         services.AddHostedService(provider => provider.GetRequiredService<EmailQueue>());

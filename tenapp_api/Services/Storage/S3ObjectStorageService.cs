@@ -8,35 +8,20 @@ namespace TenappCore.Services.Storage;
 
 public class S3ObjectStorageService : IS3ObjectStorageService
 {
-    private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/gif"
-    };
-
     private readonly IAmazonS3 _s3Client;
     private readonly S3Options _options;
-    private readonly IS3UrlBuilder _urlBuilder;
+    private readonly IS3ServiceHelper _s3ServiceHelper;
 
-    public S3ObjectStorageService(IAmazonS3 s3Client, IOptions<S3Options> options, IS3UrlBuilder urlBuilder)
+    public S3ObjectStorageService(IAmazonS3 s3Client, IOptions<S3Options> options, IS3ServiceHelper s3ServiceHelper)
     {
         _s3Client = s3Client;
         _options = options.Value;
-        _urlBuilder = urlBuilder;
+        _s3ServiceHelper = s3ServiceHelper;
     }
 
     public async Task<string> UploadUserLogoAsync(Guid userId, IFormFile file, CancellationToken cancellationToken = default)
     {
-        if (file.Length <= 0)
-            throw new ArgumentException("logo file is required", nameof(file));
-
-        if (file.Length > _options.MaxLogoBytes)
-            throw new ArgumentException($"logo file must be {_options.MaxLogoBytes} bytes or less", nameof(file));
-
-        if (!AllowedContentTypes.Contains(file.ContentType))
-            throw new ArgumentException("logo file must be a jpeg, png, webp, or gif image", nameof(file));
+        _s3ServiceHelper.ValidateLogoFile(file);
 
         var extension = GetExtension(file.ContentType);
         var prefix = _options.UserLogoPrefix.Trim().Trim('/');
@@ -54,7 +39,7 @@ public class S3ObjectStorageService : IS3ObjectStorageService
 
         await _s3Client.PutObjectAsync(request, cancellationToken);
 
-        return _urlBuilder.BuildPublicUrl("tenapp-logos", _options.Region, key);
+        return _s3ServiceHelper.BuildPublicUrl("tenapp-logos", _options.Region, key);
     }
 
     private static string GetExtension(string contentType)

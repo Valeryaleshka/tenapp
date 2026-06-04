@@ -36,7 +36,10 @@ public class AuthServiceTests
         Assert.Equal("Doe", result.Data?.SecondName);
         var user = Assert.Single(dbContext.Users);
         Assert.Equal("HASH:refresh-token", user.RefreshToken);
-        Assert.Single(emailQueue.Messages);
+        var message = Assert.Single(emailQueue.Messages);
+        Assert.Equal("user@example.com", message.To);
+        Assert.Equal("Welcome to Tenapp Core", message.Subject);
+        Assert.Equal("Hello Jane, welcome to Tenapp Core.", message.Text);
         Assert.True(cookieService.AppendedAuthCookies);
     }
 
@@ -151,7 +154,9 @@ public class AuthServiceTests
         Assert.NotNull(user.PasswordResetTokenExpiresAt);
         var message = Assert.Single(mailgun.Messages);
         Assert.Equal("user@example.com", message.To);
+        Assert.Equal("Tenapp Core password reset", message.Subject);
         Assert.Contains("token=reset-token", message.Text);
+        Assert.Contains("The link expires in 1 hour.", message.Text);
     }
 
     [Fact]
