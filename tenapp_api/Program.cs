@@ -13,6 +13,7 @@ using TenappCore.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+builder.WebHost.UseSentry();
 builder.Logging.AddFile(builder.Configuration.GetSection("Logging:File"), builder.Environment.ContentRootPath);
 
 builder.Services.AddControllers();
@@ -79,7 +80,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
-app.UseHttpsRedirection();
+
+if (builder.Configuration.GetValue("HttpsRedirection:Enabled", false))
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

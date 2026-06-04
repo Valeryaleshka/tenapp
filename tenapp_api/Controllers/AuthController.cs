@@ -66,6 +66,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserResponseDto>> Me()
     {
         var result = await _authService.MeAsync(User);
+        SentrySdk.CaptureMessage("Hello Sentry");
         return ToActionResult(result);
     }
 
