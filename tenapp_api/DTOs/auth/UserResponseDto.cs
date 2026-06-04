@@ -6,5 +6,5 @@ public class UserResponseDto
     public string FirstName { get; set; } = string.Empty;
     public string SecondName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public string? LogoUrl { get; set; }
 }
-

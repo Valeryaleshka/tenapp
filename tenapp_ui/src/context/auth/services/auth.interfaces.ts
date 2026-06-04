@@ -6,6 +6,7 @@ export interface User {
   lastName?: string
   login?: string
   phoneNumber?: string | null
+  logoUrl?: string | null
 }
 
 export interface LoginPayload {

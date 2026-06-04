@@ -7,7 +7,7 @@
   align-items: center;
   gap: 0.65rem;
   padding: 0.65rem 0.8rem;
-  border-radius: 0.5rem;
+  border-radius: 5px;
   text-decoration: none;
   color: var(--app-text);
   font-weight: 600;
@@ -25,14 +25,14 @@
 }
 
 .app-menu-link:hover {
-  background: #e9f4fc;
-  color: #224f72;
+  background: #e7f0f8;
+  color: var(--app-accent-strong);
 }
 
 .app-menu-link.active {
   background: var(--app-accent);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 0 20px rgba(46, 109, 164, 0.3);
 }
 
 @media (min-width: 992px) and (max-width: 1199.98px) {

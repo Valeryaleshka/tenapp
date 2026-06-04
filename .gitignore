@@ -8,6 +8,13 @@ Thumbs.db
 .env
 .env.*
 
+# Local secrets
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+!**/appsettings.example.json
+!**/appsettings.Local.example.json
+
 # Runtime logs
 *.log
 logs/

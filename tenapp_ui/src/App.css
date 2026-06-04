@@ -2,15 +2,20 @@
 @import './styles/text/index.css';
 
 :root {
-  --app-bg: #eef4fb;
+  --app-bg: #f9fafb;
+  --app-page-bg: #ebecf0;
   --app-surface: #ffffff;
   --app-surface-soft: #f2f7fc;
   --app-border: #d7e2ef;
   --app-text: #2c3e50;
   --app-muted: #5d7186;
-  --app-accent: #3498db;
-  --app-accent-strong: #2b85c1;
+  --app-accent: #2e6da4;
+  --app-accent-strong: #255983;
   --app-danger: #e74c3c;
+  --bs-primary: var(--app-accent);
+  --bs-primary-rgb: 46, 109, 164;
+  --bs-link-color: var(--app-accent);
+  --bs-link-hover-color: var(--app-accent-strong);
 }
 
 #root {

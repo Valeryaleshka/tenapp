@@ -12,5 +12,6 @@ export interface AuthContextValue {
   login: (payload: LoginPayload) => Promise<void>
   register: (payload: RegisterPayload) => Promise<void>
   updateAccount: (payload: UpdateAccountPayload) => Promise<User>
+  uploadLogo: (file: File) => Promise<User>
   logout: () => Promise<void>
 }

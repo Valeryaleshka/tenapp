@@ -36,7 +36,10 @@ public class AuthServiceTests
         Assert.Equal("Doe", result.Data?.SecondName);
         var user = Assert.Single(dbContext.Users);
         Assert.Equal("HASH:refresh-token", user.RefreshToken);
-        Assert.Single(emailQueue.Messages);
+        var message = Assert.Single(emailQueue.Messages);
+        Assert.Equal("user@example.com", message.To);
+        Assert.Equal("Welcome to Tenapp Core", message.Subject);
+        Assert.Equal("Hello Jane, welcome to Tenapp Core.", message.Text);
         Assert.True(cookieService.AppendedAuthCookies);
     }
 
@@ -151,7 +154,9 @@ public class AuthServiceTests
         Assert.NotNull(user.PasswordResetTokenExpiresAt);
         var message = Assert.Single(mailgun.Messages);
         Assert.Equal("user@example.com", message.To);
+        Assert.Equal("Tenapp Core password reset", message.Subject);
         Assert.Contains("token=reset-token", message.Text);
+        Assert.Contains("The link expires in 1 hour.", message.Text);
     }
 
     [Fact]
@@ -240,6 +245,45 @@ public class AuthServiceTests
     }
 
     [Fact]
+    public async Task UploadLogoAsync_UploadsLogoAndPersistsUrl()
+    {
+        await using var dbContext = TestHelpers.CreateDbContext();
+        var user = TestHelpers.CreateUser("user@example.com");
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+        var storageService = new FakeS3ObjectStorageService();
+        var service = CreateService(dbContext, storageService: storageService);
+        var file = TestHelpers.CreateFormFile("logo.png", "image/png");
+
+        var result = await service.UploadLogoAsync(TestHelpers.CreatePrincipal(user.Id), file);
+
+        Assert.True(result.Success);
+        Assert.True(storageService.UploadCalled);
+        Assert.Equal("https://cdn.test/user-logos/logo.png", user.LogoUrl);
+        Assert.Equal(user.LogoUrl, result.Data?.LogoUrl);
+    }
+
+    [Fact]
+    public async Task UploadLogoAsync_RejectsInvalidPrincipalAndStorageValidation()
+    {
+        await using var dbContext = TestHelpers.CreateDbContext();
+        var user = TestHelpers.CreateUser("user@example.com");
+        dbContext.Users.Add(user);
+        await dbContext.SaveChangesAsync();
+        var storageService = new FakeS3ObjectStorageService
+        {
+            ExceptionToThrow = new ArgumentException("logo file must be a jpeg, png, webp, or gif image")
+        };
+        var service = CreateService(dbContext, storageService: storageService);
+
+        var unauthorized = await service.UploadLogoAsync(new System.Security.Claims.ClaimsPrincipal(), TestHelpers.CreateFormFile());
+        var invalidFile = await service.UploadLogoAsync(TestHelpers.CreatePrincipal(user.Id), TestHelpers.CreateFormFile());
+
+        Assert.Equal(StatusCodes.Status401Unauthorized, unauthorized.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, invalidFile.StatusCode);
+    }
+
+    [Fact]
     public async Task LogoutAsync_ClearsStoredRefreshTokenAndDeletesCookies()
     {
         await using var dbContext = TestHelpers.CreateDbContext();
@@ -261,7 +305,8 @@ public class AuthServiceTests
         TenappCore.Data.AppDbContext dbContext,
         FakeCookieService? cookieService = null,
         FakeEmailQueue? emailQueue = null,
-        FakeMailgunService? mailgunService = null)
+        FakeMailgunService? mailgunService = null,
+        FakeS3ObjectStorageService? storageService = null)
     {
         return new AuthService(
             dbContext,
@@ -270,7 +315,7 @@ public class AuthServiceTests
             mailgunService ?? new FakeMailgunService(),
             emailQueue ?? new FakeEmailQueue(),
             cookieService ?? new FakeCookieService(),
+            storageService ?? new FakeS3ObjectStorageService(),
             NullLogger<AuthService>.Instance);
     }
 }
-

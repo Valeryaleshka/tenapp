@@ -1,20 +1,29 @@
 .btn {
-    border-radius: 10px;
-    font-weight: 600;
+  border-radius: 5px;
+  font-weight: 600;
 }
 
 .btn-primary {
-    background: var(--app-accent);
-    border-color: var(--app-accent);
+  --bs-btn-bg: var(--app-accent);
+  --bs-btn-border-color: var(--app-accent);
+  --bs-btn-hover-bg: var(--app-accent-strong);
+  --bs-btn-hover-border-color: var(--app-accent-strong);
+  --bs-btn-focus-shadow-rgb: 46, 109, 164;
+  --bs-btn-active-bg: var(--app-accent-strong);
+  --bs-btn-active-border-color: var(--app-accent-strong);
+  --bs-btn-disabled-bg: var(--app-accent);
+  --bs-btn-disabled-border-color: var(--app-accent);
+  background: var(--app-accent);
+  border-color: var(--app-accent);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-    background: var(--app-accent-strong);
-    border-color: var(--app-accent-strong);
+  background: var(--app-accent-strong);
+  border-color: var(--app-accent-strong);
 }
 
 .btn-danger {
-    background: var(--app-danger);
-    border-color: var(--app-danger);
+  background: var(--app-danger);
+  border-color: var(--app-danger);
 }

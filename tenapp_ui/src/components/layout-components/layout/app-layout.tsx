@@ -23,7 +23,11 @@ export function AppLayout() {
       </div>
 
       <div className="app-main flex-grow-1 d-flex flex-column">
-        <AppHeader action={() => setShowDrawer(true)} settingsInitial={settingsInitial} />
+        <AppHeader
+          action={() => setShowDrawer(true)}
+          settingsInitial={settingsInitial}
+          url={user?.logoUrl}
+        />
 
         <main className="app-content flex-grow-1">
           <Outlet />

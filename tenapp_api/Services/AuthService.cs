@@ -7,6 +7,7 @@ using TenappCore.Data;
 using TenappCore.DTOs;
 using TenappCore.Models;
 using TenappCore.Services.Mailgun;
+using TenappCore.Services.Storage;
 using TenappApi.Services;
 
 namespace TenappCore.Services;
@@ -18,6 +19,7 @@ public class AuthService : IAuthService
     private readonly IMailgunService _mailgunService;
     private readonly IEmailQueue _emailQueue;
     private readonly ICookieService _cookieService;
+    private readonly IS3ObjectStorageService _storageService;
     private readonly ILogger<AuthService> _logger;
     private readonly string _passwordResetBaseUrl;
 
@@ -28,6 +30,7 @@ public class AuthService : IAuthService
         IMailgunService mailgunService,
         IEmailQueue emailQueue,
         ICookieService cookieService,
+        IS3ObjectStorageService storageService,
         ILogger<AuthService> logger)
     {
         _dbContext = dbContext;
@@ -35,6 +38,7 @@ public class AuthService : IAuthService
         _mailgunService = mailgunService;
         _emailQueue = emailQueue;
         _cookieService = cookieService;
+        _storageService = storageService;
         _logger = logger;
         _passwordResetBaseUrl = configuration["Auth:PasswordResetBaseUrl"] ?? "http://localhost:3001/reset-password";
     }
@@ -131,10 +135,7 @@ public class AuthService : IAuthService
         var encodedToken = Uri.EscapeDataString(resetToken.RawToken);
         var resetUrl = $"{_passwordResetBaseUrl}?token={encodedToken}";
 
-        var message = new MailgunMessage(
-            To: user.Email,
-            Subject: "Tenapp Core password reset",
-            Text: $"Use this link to reset your password: {resetUrl}\nThe link expires in 1 hour.");
+        var message = EmailTemplates.PasswordReset(user, resetUrl);
 
         try
         {
@@ -241,6 +242,31 @@ public class AuthService : IAuthService
         return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
     }
 
+    public async Task<AuthResult<UserResponseDto>> UploadLogoAsync(ClaimsPrincipal principal, IFormFile file, CancellationToken cancellationToken = default)
+    {
+        if (!TryGetUserId(principal, out var userId))
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "Invalid access token");
+
+        if (file == null)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, "logo file is required");
+
+        var user = await _dbContext.Users.FindAsync([userId], cancellationToken);
+        if (user == null)
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status401Unauthorized, "User not found");
+
+        try
+        {
+            user.LogoUrl = await _storageService.UploadUserLogoAsync(userId, file, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return AuthResult<UserResponseDto>.Ok(ToUserResponse(user));
+        }
+        catch (ArgumentException ex)
+        {
+            return AuthResult<UserResponseDto>.Fail(StatusCodes.Status400BadRequest, ex.Message);
+        }
+    }
+
     private async Task IssueTokensAsync(User user, HttpResponse response, HttpRequest? httpRequest)
     {
         var tokens = _cookieService.GenerateAuthTokens(user.Id);
@@ -265,17 +291,15 @@ public class AuthService : IAuthService
             Email = user.Email,
             FirstName = user.FirstName,
             SecondName = user.SecondName,
-            PhoneNumber = user.PhoneNumber
+            PhoneNumber = user.PhoneNumber,
+            LogoUrl = user.LogoUrl
         };
     }
 
 
     private void QueueWelcomeEmail(User user)
     {
-        var message = new MailgunMessage(
-            To: user.Email,
-            Subject: "Welcome to Tenapp Core",
-            Text: $"Hello {user.FirstName}, welcome to Tenapp Core.");
+        var message = EmailTemplates.Welcome(user);
 
         _emailQueue.Enqueue(message);
     }

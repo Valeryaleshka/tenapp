@@ -1,0 +1,21 @@
+.tenant-status-cell {
+  text-align: center;
+}
+
+.tenant-status-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.tenant-status-dot-assigned {
+  background: #198754;
+}
+
+.tenant-status-dot-unassigned {
+  background: #6c757d;
+}

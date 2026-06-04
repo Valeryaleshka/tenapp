@@ -5,10 +5,11 @@ import { useAuth } from '../../../common/hooks/useAuth.ts'
 import type { AppHeaderProps } from './app-header.interfaces.ts'
 import './app-header.css'
 
-export function AppHeader({ action, settingsInitial }: AppHeaderProps) {
+export function AppHeader({ action, settingsInitial, url }: AppHeaderProps) {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const logoUrl = url?.trim()
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -43,7 +44,11 @@ export function AppHeader({ action, settingsInitial }: AppHeaderProps) {
             aria-label="Open account menu"
             title="Account menu"
           >
-            {settingsInitial}
+            {logoUrl ? (
+              <img src={logoUrl} alt="Account logo" className="app-account-logo" />
+            ) : (
+              settingsInitial
+            )}
           </Dropdown.Toggle>
           <Dropdown.Menu>
             <Dropdown.Item as={Link} to="/settings">

@@ -11,6 +11,7 @@
 .app-account-button {
   width: 42px;
   height: 42px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +21,8 @@
   text-decoration: none;
   font-weight: 700;
   border: 1px solid var(--app-accent);
-  box-shadow: 0 8px 18px rgba(52, 152, 219, 0.24);
+  box-shadow: 0 8px 18px rgba(46, 109, 164, 0.24);
+  overflow: hidden;
 }
 
 .app-account-button:hover,
@@ -32,6 +34,12 @@
 
 .app-account-button.dropdown-toggle::after {
   display: none;
+}
+
+.app-account-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 @media (max-width: 991.98px) {

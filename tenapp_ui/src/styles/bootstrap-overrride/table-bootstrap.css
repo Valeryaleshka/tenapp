@@ -1,24 +1,24 @@
 .table {
-    background: var(--app-surface);
-    overflow: hidden;
+  background: var(--app-surface);
+  overflow: hidden;
 }
 
 .table > :not(caption) > * > * {
-    border-color: var(--app-border);
+  border-color: var(--app-border);
 }
 
 .table-action-col {
-    width: 100px;
-    min-width: 100px;
-    max-width: 100px;
-    text-align: center;
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  text-align: center;
 }
 
 .table thead th {
-    background: var(--app-surface-soft);
-    color: var(--app-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    font-size: 0.78rem;
-    font-weight: 700;
+  background: var(--app-surface-soft);
+  color: var(--app-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.78rem;
+  font-weight: 700;
 }

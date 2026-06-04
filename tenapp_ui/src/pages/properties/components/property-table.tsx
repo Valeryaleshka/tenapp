@@ -11,6 +11,8 @@ import {
 import { AppPagination } from '../../../common/components/pagination/app-pagination.tsx'
 import { usePropertiesQuery } from '../services/property.queries.ts'
 import type { PropertySortField } from '../services/property.interfaces.ts'
+import { getPropertyStatus } from '../services/property-status.helpers.ts'
+import './property-table.css'
 
 export function PropertyTable() {
   const navigate = useNavigate()
@@ -104,6 +106,7 @@ export function PropertyTable() {
         <Table bordered hover className="align-middle">
           <thead>
             <tr>
+              <th className="property-status-cell">Status</th>
               <th>
                 <SortableTableHeaderColumn
                   activeField={sortBy}
@@ -139,8 +142,17 @@ export function PropertyTable() {
           </thead>
           <tbody>
             {propertiesList.map((property) => {
+              const status = getPropertyStatus(property)
+
               return (
-                <tr key={property.id} className={property.tenantId ? 'table-info' : ''}>
+                <tr key={property.id}>
+                  <td className="property-status-cell">
+                    <span
+                      className={status.className}
+                      title={status.label}
+                      aria-label={status.label}
+                    />
+                  </td>
                   <td>{property.name}</td>
                   <td>{property.address}</td>
                   <td className="d-none d-md-table-cell">{property.type}</td>

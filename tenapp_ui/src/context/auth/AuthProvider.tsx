@@ -60,6 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return updatedUser
   }
 
+  const uploadLogo = async (file: File) => {
+    const updatedUser = await AuthService.uploadLogo(file)
+    setUser(updatedUser)
+    return updatedUser
+  }
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -68,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       updateAccount,
+      uploadLogo,
       logout,
     }),
     [user, isLoading],

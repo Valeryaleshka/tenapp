@@ -35,7 +35,7 @@ jobs:
       - name: Review pull request
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: nvidia/nemotron-3-super-120b-a12b:free
+          OPENROUTER_MODEL: nvidia/nemotron-3-ultra-550b-a55b:free
           PR_REVIEW_BASE_REF: main
           GITHUB_TOKEN: ${{ github.token }}
         run: node .github/scripts/openrouter-pr-review.mjs

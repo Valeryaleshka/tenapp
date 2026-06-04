@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Alert, Button, Form } from 'react-bootstrap'
 import { useAuth } from '../../common/hooks/useAuth.ts'
 import './settings-page.css'
@@ -18,9 +18,11 @@ interface SettingsFormErrors {
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const allowedLogoTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const maxLogoBytes = 2 * 1024 * 1024
 
 export function SettingsPage() {
-  const { user, updateAccount } = useAuth()
+  const { user, updateAccount, uploadLogo } = useAuth()
   const [formData, setFormData] = useState<SettingsForm>({
     firstName: user?.firstName ?? '',
     secondName: user?.secondName ?? user?.lastName ?? '',
@@ -28,9 +30,12 @@ export function SettingsPage() {
     phoneNumber: user?.phoneNumber ?? '',
   })
   const [formErrors, setFormErrors] = useState<SettingsFormErrors>({})
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [logoError, setLogoError] = useState<string | null>(null)
 
   useEffect(() => {
     setFormData({
@@ -40,6 +45,42 @@ export function SettingsPage() {
       phoneNumber: user?.phoneNumber ?? '',
     })
   }, [user])
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) {
+        URL.revokeObjectURL(logoPreviewUrl)
+      }
+    }
+  }, [logoPreviewUrl])
+
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    setLogoError(null)
+
+    if (!file) {
+      return
+    }
+
+    if (!allowedLogoTypes.includes(file.type)) {
+      setLogoFile(null)
+      setLogoPreviewUrl(null)
+      setLogoError('Logo must be a JPG, PNG, WebP, or GIF image.')
+      return
+    }
+
+    if (file.size > maxLogoBytes) {
+      setLogoFile(null)
+      setLogoPreviewUrl(null)
+      setLogoError('Logo must be 2 MB or less.')
+      return
+    }
+
+    setLogoFile(file)
+    setLogoPreviewUrl(URL.createObjectURL(file))
+  }
 
   const validate = (values: SettingsForm): SettingsFormErrors => {
     const nextErrors: SettingsFormErrors = {}
@@ -95,7 +136,14 @@ export function SettingsPage() {
         email: formData.email.trim(),
         phoneNumber: phoneNumber ? phoneNumber : null,
       })
-      setSuccess('Account settings saved.')
+
+      if (logoFile) {
+        await uploadLogo(logoFile)
+        setLogoFile(null)
+        setLogoPreviewUrl(null)
+      }
+
+      setSuccess(logoFile ? 'Account settings and logo saved.' : 'Account settings saved.')
     } catch {
       setError('Could not save account settings. Please try again.')
     } finally {
@@ -116,6 +164,44 @@ export function SettingsPage() {
 
           {error && <Alert variant="danger">{error}</Alert>}
           {success && <Alert variant="success">{success}</Alert>}
+
+          <div className="settings-logo-section">
+            <div className="settings-logo-preview" aria-label="Current account logo">
+              {logoPreviewUrl || user?.logoUrl ? (
+                <img
+                  src={logoPreviewUrl ?? user?.logoUrl ?? ''}
+                  alt="Account logo"
+                  className="settings-logo-image"
+                />
+              ) : (
+                <span>{(user?.firstName?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()}</span>
+              )}
+            </div>
+
+            <div className="settings-logo-controls">
+              <Form.Label htmlFor="settings-logo" className="fw-semibold">
+                Logo
+              </Form.Label>
+              <Form.Control
+                id="settings-logo"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                disabled={isSubmitting}
+                onChange={handleLogoChange}
+              />
+              <Form.Text muted>JPG, PNG, WebP, or GIF, up to 2 MB.</Form.Text>
+              {logoError && (
+                <Alert className="mt-3 mb-0" variant="danger">
+                  {logoError}
+                </Alert>
+              )}
+              {logoFile && !logoError && (
+                <Alert className="mt-3 mb-0" variant="info">
+                  Logo selected.
+                </Alert>
+              )}
+            </div>
+          </div>
 
           <Form onSubmit={handleSubmit} noValidate>
             <div className="settings-form-grid">

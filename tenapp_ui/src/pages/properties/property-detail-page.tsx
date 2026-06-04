@@ -2,12 +2,14 @@ import { type ChangeEvent, useState } from 'react'
 import { Alert, Button, Card, Container, Form, Modal, Spinner } from 'react-bootstrap'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { type PropertyUpsertPayload } from './services/property.interfaces.ts'
+import { getPropertyStatus } from './services/property-status.helpers.ts'
 import {
   useDeletePropertyMutation,
   usePropertyQuery,
   useUpdatePropertyMutation,
 } from './services/property.queries.ts'
 import { TenantAssignmentSelect } from './components/tenant-assignment-select.tsx'
+import './components/property-table.css'
 
 export function PropertyDetailPage() {
   const navigate = useNavigate()
@@ -123,6 +125,8 @@ export function PropertyDetailPage() {
     )
   }
 
+  const status = getPropertyStatus(property)
+
   return (
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -147,6 +151,10 @@ export function PropertyDetailPage() {
         <Card.Body>
           <div>
             <strong>Name:</strong> {property.name}
+          </div>
+          <div>
+            <strong>Status:</strong>{' '}
+            <span className={status.className} title={status.label} aria-label={status.label} />
           </div>
           <div>
             <strong>Type:</strong> {property.type}

@@ -43,6 +43,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.PhoneNumber)
                 .HasColumnName("phone_number")
                 .HasMaxLength(30);
+            entity.Property(e => e.LogoUrl)
+                .HasColumnName("logo_url")
+                .HasMaxLength(2048);
             entity.Property(e => e.RefreshToken)
                 .HasColumnName("refresh_token")
                 .HasMaxLength(2000);

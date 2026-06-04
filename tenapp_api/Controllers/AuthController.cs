@@ -66,6 +66,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserResponseDto>> Me()
     {
         var result = await _authService.MeAsync(User);
+        SentrySdk.CaptureMessage("Hello Sentry");
         return ToActionResult(result);
     }
 
@@ -74,6 +75,15 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserResponseDto>> UpdateAccount(UpdateAccountDto dto)
     {
         var result = await _authService.UpdateAccountAsync(User, dto);
+        return ToActionResult(result);
+    }
+
+    [Authorize]
+    [HttpPost("account/logo")]
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<UserResponseDto>> UploadLogo(IFormFile file, CancellationToken cancellationToken)
+    {
+        var result = await _authService.UploadLogoAsync(User, file, cancellationToken);
         return ToActionResult(result);
     }
 
