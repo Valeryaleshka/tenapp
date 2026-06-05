@@ -7,3 +7,33 @@
   font-size: 1rem;
   line-height: 1.7;
 }
+
+.about-html-demo {
+  border-top: 1px solid var(--bs-border-color);
+  padding-top: 1.5rem;
+}
+
+.about-html-input {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.about-html-preview {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.about-html-preview-label {
+  background-color: var(--bs-tertiary-bg);
+  border-bottom: 1px solid var(--bs-border-color);
+  color: var(--app-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+}
+
+.about-html-preview-body {
+  min-height: 72px;
+  padding: 0.75rem;
+}
